@@ -23,13 +23,13 @@ interface Users
     public function setSecureValueErrors(array|int|string|null $id = null, array $errors = [], ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): bool;
 
     /**
-     * Check whether we can write to the specified user (this method can only be called by non-[Premium](https://core.telegram.org/api/premium) users), see [here »](https://core.telegram.org/api/privacy#require-premium-for-new-non-contact-users) for more info on the full flow.
      *
-     * @param list<array|int|string>|array<never, never> $id Array of Users to fetch info about. @see https://docs.madelineproto.xyz/API_docs/types/InputUser.html
+     *
+     * @param list<array|int|string>|array<never, never> $id Array of  @see https://docs.madelineproto.xyz/API_docs/types/InputUser.html
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
-     * @return list<bool>
+     * @return list<array{_: 'requirementToContactEmpty'}|array{_: 'requirementToContactPremium'}|array{_: 'requirementToContactPaidMessages', stars_amount: int}> Array of  @see https://docs.madelineproto.xyz/API_docs/types/RequirementToContact.html
      */
-    public function getIsPremiumRequiredToContact(array $id = [], ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+    public function getRequirementsToContact(array $id = [], ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 }

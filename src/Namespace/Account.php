@@ -137,7 +137,7 @@ interface Account
     /**
      * Get privacy settings of current account.
      *
-     * @param array{_: 'inputPrivacyKeyStatusTimestamp'}|array{_: 'inputPrivacyKeyChatInvite'}|array{_: 'inputPrivacyKeyPhoneCall'}|array{_: 'inputPrivacyKeyPhoneP2P'}|array{_: 'inputPrivacyKeyForwards'}|array{_: 'inputPrivacyKeyProfilePhoto'}|array{_: 'inputPrivacyKeyPhoneNumber'}|array{_: 'inputPrivacyKeyAddedByPhone'}|array{_: 'inputPrivacyKeyVoiceMessages'}|array{_: 'inputPrivacyKeyAbout'}|array{_: 'inputPrivacyKeyBirthday'}|array{_: 'inputPrivacyKeyStarGiftsAutoSave'} $key Peer category whose privacy settings should be fetched @see https://docs.madelineproto.xyz/API_docs/types/InputPrivacyKey.html
+     * @param array{_: 'inputPrivacyKeyStatusTimestamp'}|array{_: 'inputPrivacyKeyChatInvite'}|array{_: 'inputPrivacyKeyPhoneCall'}|array{_: 'inputPrivacyKeyPhoneP2P'}|array{_: 'inputPrivacyKeyForwards'}|array{_: 'inputPrivacyKeyProfilePhoto'}|array{_: 'inputPrivacyKeyPhoneNumber'}|array{_: 'inputPrivacyKeyAddedByPhone'}|array{_: 'inputPrivacyKeyVoiceMessages'}|array{_: 'inputPrivacyKeyAbout'}|array{_: 'inputPrivacyKeyBirthday'}|array{_: 'inputPrivacyKeyStarGiftsAutoSave'}|array{_: 'inputPrivacyKeyNoPaidMessages'} $key Peer category whose privacy settings should be fetched @see https://docs.madelineproto.xyz/API_docs/types/InputPrivacyKey.html
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
@@ -148,7 +148,7 @@ interface Account
     /**
      * Change privacy settings of current account.
      *
-     * @param array{_: 'inputPrivacyKeyStatusTimestamp'}|array{_: 'inputPrivacyKeyChatInvite'}|array{_: 'inputPrivacyKeyPhoneCall'}|array{_: 'inputPrivacyKeyPhoneP2P'}|array{_: 'inputPrivacyKeyForwards'}|array{_: 'inputPrivacyKeyProfilePhoto'}|array{_: 'inputPrivacyKeyPhoneNumber'}|array{_: 'inputPrivacyKeyAddedByPhone'}|array{_: 'inputPrivacyKeyVoiceMessages'}|array{_: 'inputPrivacyKeyAbout'}|array{_: 'inputPrivacyKeyBirthday'}|array{_: 'inputPrivacyKeyStarGiftsAutoSave'} $key New privacy rule @see https://docs.madelineproto.xyz/API_docs/types/InputPrivacyKey.html
+     * @param array{_: 'inputPrivacyKeyStatusTimestamp'}|array{_: 'inputPrivacyKeyChatInvite'}|array{_: 'inputPrivacyKeyPhoneCall'}|array{_: 'inputPrivacyKeyPhoneP2P'}|array{_: 'inputPrivacyKeyForwards'}|array{_: 'inputPrivacyKeyProfilePhoto'}|array{_: 'inputPrivacyKeyPhoneNumber'}|array{_: 'inputPrivacyKeyAddedByPhone'}|array{_: 'inputPrivacyKeyVoiceMessages'}|array{_: 'inputPrivacyKeyAbout'}|array{_: 'inputPrivacyKeyBirthday'}|array{_: 'inputPrivacyKeyStarGiftsAutoSave'}|array{_: 'inputPrivacyKeyNoPaidMessages'} $key New privacy rule @see https://docs.madelineproto.xyz/API_docs/types/InputPrivacyKey.html
      * @param list<array{_: 'inputPrivacyValueAllowContacts'}|array{_: 'inputPrivacyValueAllowAll'}|array{_: 'inputPrivacyValueAllowUsers', users?: list<array|int|string>}|array{_: 'inputPrivacyValueDisallowContacts'}|array{_: 'inputPrivacyValueDisallowAll'}|array{_: 'inputPrivacyValueDisallowUsers', users?: list<array|int|string>}|array{_: 'inputPrivacyValueAllowChatParticipants', chats?: list<int>}|array{_: 'inputPrivacyValueDisallowChatParticipants', chats?: list<int>}|array{_: 'inputPrivacyValueAllowCloseFriends'}|array{_: 'inputPrivacyValueAllowPremium'}|array{_: 'inputPrivacyValueAllowBots'}|array{_: 'inputPrivacyValueDisallowBots'}>|array<never, never> $rules Array of Peers to which the privacy rule will apply. @see https://docs.madelineproto.xyz/API_docs/types/InputPrivacyRule.html
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
@@ -734,18 +734,18 @@ interface Account
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
-     * @return array{_: 'globalPrivacySettings', archive_and_mute_new_noncontact_peers: bool, keep_archived_unmuted: bool, keep_archived_folders: bool, hide_read_marks: bool, new_noncontact_peers_require_premium: bool} @see https://docs.madelineproto.xyz/API_docs/types/GlobalPrivacySettings.html
+     * @return array{_: 'globalPrivacySettings', archive_and_mute_new_noncontact_peers: bool, keep_archived_unmuted: bool, keep_archived_folders: bool, hide_read_marks: bool, new_noncontact_peers_require_premium: bool, noncontact_peers_paid_stars?: int} @see https://docs.madelineproto.xyz/API_docs/types/GlobalPrivacySettings.html
      */
     public function getGlobalPrivacySettings(?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 
     /**
      * Set global privacy settings.
      *
-     * @param array{_: 'globalPrivacySettings', archive_and_mute_new_noncontact_peers?: bool, keep_archived_unmuted?: bool, keep_archived_folders?: bool, hide_read_marks?: bool, new_noncontact_peers_require_premium?: bool} $settings Global privacy settings @see https://docs.madelineproto.xyz/API_docs/types/GlobalPrivacySettings.html
+     * @param array{_: 'globalPrivacySettings', archive_and_mute_new_noncontact_peers?: bool, keep_archived_unmuted?: bool, keep_archived_folders?: bool, hide_read_marks?: bool, new_noncontact_peers_require_premium?: bool, noncontact_peers_paid_stars?: int} $settings Global privacy settings @see https://docs.madelineproto.xyz/API_docs/types/GlobalPrivacySettings.html
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
-     * @return array{_: 'globalPrivacySettings', archive_and_mute_new_noncontact_peers: bool, keep_archived_unmuted: bool, keep_archived_folders: bool, hide_read_marks: bool, new_noncontact_peers_require_premium: bool} @see https://docs.madelineproto.xyz/API_docs/types/GlobalPrivacySettings.html
+     * @return array{_: 'globalPrivacySettings', archive_and_mute_new_noncontact_peers: bool, keep_archived_unmuted: bool, keep_archived_folders: bool, hide_read_marks: bool, new_noncontact_peers_require_premium: bool, noncontact_peers_paid_stars?: int} @see https://docs.madelineproto.xyz/API_docs/types/GlobalPrivacySettings.html
      */
     public function setGlobalPrivacySettings(array $settings, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 
@@ -1262,4 +1262,26 @@ interface Account
      * @return array{_: 'account.emojiStatusesNotModified'}|array{_: 'account.emojiStatuses', hash: list<int|string>, statuses: list<array{_: 'emojiStatusEmpty'}|array{_: 'emojiStatus', document_id: int, until?: int}|array{_: 'emojiStatusCollectible', collectible_id: int, document_id: int, title: string, slug: string, pattern_document_id: int, center_color: int, edge_color: int, pattern_color: int, text_color: int, until?: int}|array{_: 'inputEmojiStatusCollectible', collectible_id: int, until?: int}>} @see https://docs.madelineproto.xyz/API_docs/types/account.EmojiStatuses.html
      */
     public function getCollectibleEmojiStatuses(array $hash = [], ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+
+    /**
+     *
+     *
+     * @param bool $refund_charged
+     * @param array|int|string $user_id @see https://docs.madelineproto.xyz/API_docs/types/InputUser.html
+     * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
+     * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
+     * @param ?\Amp\Cancellation $cancellation Cancellation
+     */
+    public function addNoPaidMessagesException(bool|null $refund_charged = null, array|int|string|null $user_id = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): bool;
+
+    /**
+     *
+     *
+     * @param array|int|string $user_id @see https://docs.madelineproto.xyz/API_docs/types/InputUser.html
+     * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
+     * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
+     * @param ?\Amp\Cancellation $cancellation Cancellation
+     * @return array{_: 'account.paidMessagesRevenue', stars_amount: int} @see https://docs.madelineproto.xyz/API_docs/types/account.PaidMessagesRevenue.html
+     */
+    public function getPaidMessagesRevenue(array|int|string|null $user_id = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 }
