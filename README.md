@@ -65,7 +65,6 @@ The following open source projects were created using MadelineProto: you can dir
 * [`secret_bot.php`](https://github.com/danog/MadelineProto/blob/v8/examples/secret_bot.php) - Secret chat bot!
 * [`pipesbot.php`](https://github.com/danog/pipesbot) - Creating inline bots and using other inline bots via a userbot!
 * [`bot.php`](https://github.com/danog/MadelineProto/blob/v8/examples/bot.php) - Examples for how to use filters, updates, get download links for any file, Telegram Stories and much more!
-* [TelegramApiServer](https://github.com/xtrime-ru/TelegramApiServer) - Fast, simple, async php telegram api server: an HTTP JSON API for MadelineProto (for use in languages other than PHP, if using PHP use directly MadelineProto)
 
 Want to add your own open-source project to this list? [Click here!](https://docs.madelineproto.xyz/FOSS.html)
 
