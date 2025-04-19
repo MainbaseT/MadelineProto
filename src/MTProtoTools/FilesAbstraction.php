@@ -1164,7 +1164,7 @@ trait FilesAbstraction
         unset($p);
 
         $file = $fileFuture->await();
-        $mime = (new finfo())->buffer($buff, FILEINFO_MIME_TYPE);
+        $mime = (new finfo())->buffer($buff, FILEINFO_MIME_TYPE) ?: 'application/octet-stream';
         $file['mime_type'] = $mime;
         return $mime;
     }
@@ -1211,7 +1211,7 @@ trait FilesAbstraction
                 $p->getSink()->close();
                 $p->getSource()->close();
 
-                $mimeType ??= (new finfo())->buffer($buff, FILEINFO_MIME_TYPE);
+                $mimeType = (new finfo())->buffer($buff, FILEINFO_MIME_TYPE) ?: 'application/octet-stream';
             });
             unset($p);
         }
@@ -1293,7 +1293,7 @@ trait FilesAbstraction
                 $p->getSink()->close();
                 $p->getSource()->close();
 
-                $mimeType = (new finfo())->buffer($buff, FILEINFO_MIME_TYPE) ?? 'application/octet-stream';
+                $mimeType = (new finfo())->buffer($buff, FILEINFO_MIME_TYPE) ?: 'application/octet-stream';
             });
             unset($p);
         }
