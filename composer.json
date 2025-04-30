@@ -34,7 +34,7 @@
         "ext-zlib": "*",
         "ext-fileinfo": "*",
         "amphp/amp": "^3.0.2",
-        "amphp/http-client": "^5.2.1",
+        "amphp/http-client": "^5.3.1",
         "amphp/websocket-client": "^2.0.1",
         "amphp/http": "^2.1.2",
         "amphp/socket": "^2.3.1",
