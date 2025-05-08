@@ -58,7 +58,7 @@
         "bacon/bacon-qr-code": "^3.0.1",
         "nikic/php-parser": "^5.4.0",
         "revolt/event-loop": "^1.0.7",
-        "danog/async-orm": "^1.1.2",
+        "danog/async-orm": "^1.1.1",
         "danog/telegram-entities": "^1.0.4",
         "danog/better-prometheus": "^0.1.1",
         "amphp/http-server": "^3.4.2",
