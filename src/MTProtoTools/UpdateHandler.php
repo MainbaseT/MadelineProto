@@ -134,7 +134,6 @@ use danog\MadelineProto\RPCError\SessionPasswordNeededError;
 use danog\MadelineProto\RPCErrorException;
 use danog\MadelineProto\Settings;
 use danog\MadelineProto\TL\TL;
-use danog\MadelineProto\TL\Types\Button;
 use danog\MadelineProto\UpdateHandlerType;
 use danog\MadelineProto\VoIP\DiscardReason;
 use danog\MadelineProto\VoIPController;
@@ -908,8 +907,11 @@ trait UpdateHandler
                 'peer' => $peer,
                 'message' => $message,
                 'parse_mode' => $parseMode,
-                'reply_to_msg_id' => $replyToMsgId,
-                'top_msg_id' => $topMsgId,
+                'reply_to' => $replyToMsgId !== null || $topMsgId !== null ? [
+                    '_' => 'inputReplyToMessage',
+                    'reply_to_msg_id' => $replyToMsgId,
+                    'top_msg_id' => $topMsgId,
+                ] : null,
                 'reply_markup' => $replyMarkup,
                 'send_as' => $sendAs,
                 'schedule_date' => $scheduleDate,
@@ -1015,14 +1017,6 @@ trait UpdateHandler
                 $new[$param['name']] = $message[$param['name']];
             } elseif ($param['type'] === 'true') {
                 $new[$param['name']] = false;
-            }
-        }
-        $message = $new;
-        if (isset($message['reply_markup']['rows'])) {
-            foreach ($message['reply_markup']['rows'] as $key => $row) {
-                foreach ($row['buttons'] as $bkey => $button) {
-                    $message['reply_markup']['rows'][$key]['buttons'][$bkey] = $button instanceof Button ? $button : new Button($this, $message, $button);
-                }
             }
         }
     }

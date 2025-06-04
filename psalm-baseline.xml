@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="dev-master@9b0b4bd058e178ff6e29ebcf6760d89eb3fe04cf">
+<files psalm-version="dev-master@667088995f17e8c873cbf84a8aef9fac73880924">
   <file src="src/API.php">
     <ArgumentTypeCoercion>
       <code><![CDATA[$settings]]></code>
@@ -257,7 +257,6 @@
       <code><![CDATA[$arguments['message']['media']['iv']]]></code>
       <code><![CDATA[$arguments['message']['media']['key']]]></code>
       <code><![CDATA[$arguments['message']['media']['size']]]></code>
-      <code><![CDATA[$arguments['message']['reply_to_random_id']]]></code>
       <code><![CDATA[$arguments['message']['reply_to_random_id']]]></code>
       <code><![CDATA[$arguments['participant']]]></code>
       <code><![CDATA[$arguments['peer']]]></code>
@@ -1086,13 +1085,21 @@
   </file>
   <file src="src/EventHandler/Keyboard.php">
     <MixedArgument>
+      <code><![CDATA[$button]]></code>
       <code><![CDATA[$rawReplyMarkup['rows']]]></code>
       <code><![CDATA[$rawReplyMarkup['rows']]]></code>
     </MixedArgument>
-    <MixedArgumentTypeCoercion>
-      <code><![CDATA[array_column($rawReplyMarkup['rows'], 'buttons')]]></code>
-      <code><![CDATA[array_column($rawReplyMarkup['rows'], 'buttons')]]></code>
-    </MixedArgumentTypeCoercion>
+    <MixedArrayAccess>
+      <code><![CDATA[$row['buttons']]]></code>
+    </MixedArrayAccess>
+    <MixedAssignment>
+      <code><![CDATA[$button]]></code>
+      <code><![CDATA[$row]]></code>
+      <code><![CDATA[$row]]></code>
+    </MixedAssignment>
+    <PropertyTypeCoercion>
+      <code><![CDATA[$buttons]]></code>
+    </PropertyTypeCoercion>
   </file>
   <file src="src/EventHandler/Media.php">
     <LessSpecificReturnStatement>
@@ -1492,7 +1499,7 @@
             ? $API->wrapMedia($rawMessage['media'], $this->protected)
             : null]]></code>
       <code><![CDATA[isset($rawMessage['reply_markup'])
-            ? Keyboard::fromRawReplyMarkup($rawMessage['reply_markup'])
+            ? Keyboard::fromRawReplyMarkup($API, $this, $rawMessage['reply_markup'])
             : null]]></code>
     </PropertyTypeCoercion>
     <RedundantCondition>
@@ -2380,7 +2387,6 @@
   <file src="src/FileCallback.php">
     <TaintedCallable>
       <code><![CDATA[$callback]]></code>
-      <code><![CDATA[$callback]]></code>
     </TaintedCallable>
   </file>
   <file src="src/FileCallbackInterface.php">
@@ -2634,7 +2640,6 @@
     </PropertyTypeCoercion>
     <TaintedCallable>
       <code><![CDATA[$this->callbacks[$payload[0]]]]></code>
-      <code><![CDATA[$this->callbacks[$payload[0]]]]></code>
     </TaintedCallable>
     <UnsafeInstantiation>
       <code><![CDATA[new $class($this, $ids)]]></code>
@@ -2760,7 +2765,6 @@
       <code><![CDATA[$param.PHP_EOL]]></code>
     </TaintedHtml>
     <TaintedTextWithQuotes>
-      <code><![CDATA[$param]]></code>
       <code><![CDATA[$param]]></code>
       <code><![CDATA[$param]]></code>
       <code><![CDATA[$param.PHP_EOL]]></code>
@@ -5047,7 +5051,6 @@
       <code><![CDATA[$action['ttl_seconds']]]></code>
       <code><![CDATA[$authorization]]></code>
       <code><![CDATA[$authorization['authorization']]]></code>
-      <code><![CDATA[$button]]></code>
       <code><![CDATA[$datacenter]]></code>
       <code><![CDATA[$message['action']['amount']]]></code>
       <code><![CDATA[$message['action']['amount']]]></code>
@@ -5259,7 +5262,6 @@
       <code><![CDATA[$param['name']]]></code>
       <code><![CDATA[$param['name']]]></code>
       <code><![CDATA[$param['type']]]></code>
-      <code><![CDATA[$row['buttons']]]></code>
       <code><![CDATA[$this->TL->getConstructors()->findByPredicate('message')['params']]]></code>
       <code><![CDATA[$this->authorization['user']['id']]]></code>
       <code><![CDATA[$this->authorization['user']['id']]]></code>
@@ -5300,16 +5302,11 @@
       <code><![CDATA[$updates['updates'][$key]]]></code>
     </MixedArrayAccess>
     <MixedArrayAssignment>
-      <code><![CDATA[$message['reply_markup']['rows'][$key]]]></code>
-      <code><![CDATA[$message['reply_markup']['rows'][$key]['buttons']]]></code>
-      <code><![CDATA[$message['reply_markup']['rows'][$key]['buttons'][$bkey]]]></code>
       <code><![CDATA[$this->authorization['hint']]]></code>
     </MixedArrayAssignment>
     <MixedArrayOffset>
       <code><![CDATA[$message[$param['name']]]]></code>
       <code><![CDATA[$message[$param['name']]]]></code>
-      <code><![CDATA[$message['reply_markup']['rows'][$key]]]></code>
-      <code><![CDATA[$message['reply_markup']['rows'][$key]['buttons'][$bkey]]]></code>
       <code><![CDATA[$new[$param['name']]]]></code>
       <code><![CDATA[$new[$param['name']]]]></code>
       <code><![CDATA[$result[$this->feeders[FeedLoop::GENERIC]->feedSingle($update)]]]></code>
@@ -5338,15 +5335,12 @@
       <code><![CDATA[$action]]></code>
       <code><![CDATA[$authorization]]></code>
       <code><![CDATA[$authorization]]></code>
-      <code><![CDATA[$bkey]]></code>
-      <code><![CDATA[$button]]></code>
       <code><![CDATA[$closure]]></code>
       <code><![CDATA[$cur_state]]></code>
       <code><![CDATA[$data]]></code>
       <code><![CDATA[$datacenter]]></code>
       <code><![CDATA[$from_id]]></code>
       <code><![CDATA[$from_id]]></code>
-      <code><![CDATA[$key]]></code>
       <code><![CDATA[$key]]></code>
       <code><![CDATA[$message['from_id']]]></code>
       <code><![CDATA[$message['from_id']]]></code>
@@ -5357,7 +5351,6 @@
       <code><![CDATA[$param]]></code>
       <code><![CDATA[$peer_id]]></code>
       <code><![CDATA[$result]]></code>
-      <code><![CDATA[$row]]></code>
       <code><![CDATA[$this->authorization]]></code>
       <code><![CDATA[$this->authorization]]></code>
       <code><![CDATA[$this->authorized_dc]]></code>
@@ -7160,7 +7153,6 @@
       <code><![CDATA[$arguments['cancellation'] ?? null]]></code>
       <code><![CDATA[$arguments['id']]]></code>
       <code><![CDATA[$arguments['id']]]></code>
-      <code><![CDATA[$button]]></code>
       <code><![CDATA[$constructorData]]></code>
       <code><![CDATA[$constructorData]]></code>
       <code><![CDATA[$current_argument]]></code>
@@ -7257,7 +7249,6 @@
       <code><![CDATA[$pair['key']]]></code>
       <code><![CDATA[$pair['value']]]></code>
       <code><![CDATA[$pow]]></code>
-      <code><![CDATA[$row['buttons']]]></code>
       <code><![CDATA[$this->constructors->findByPredicate($object['_'])['type']]]></code>
       <code><![CDATA[$this->constructors->findByPredicate($value['_'])['type']]]></code>
       <code><![CDATA[$this->constructors->findByPredicate($value['_'])['type']]]></code>
@@ -7294,9 +7285,6 @@
       <code><![CDATA[$object['_']]]></code>
       <code><![CDATA[$this->tdDescriptions[$type][$name]]]></code>
       <code><![CDATA[$this->tdDescriptions['types'][$class]]]></code>
-      <code><![CDATA[$x['reply_markup']['rows'][$key]]]></code>
-      <code><![CDATA[$x['reply_markup']['rows'][$key]['buttons']]]></code>
-      <code><![CDATA[$x['reply_markup']['rows'][$key]['buttons'][$bkey]]]></code>
     </MixedArrayAssignment>
     <MixedArrayOffset>
       <code><![CDATA[$TL_dict['constructors'][$key]]]></code>
@@ -7348,8 +7336,6 @@
       <code><![CDATA[$x[$arg['flag']]]]></code>
       <code><![CDATA[$x[$arg['name']]]]></code>
       <code><![CDATA[$x[$arg['name']]]]></code>
-      <code><![CDATA[$x['reply_markup']['rows'][$key]]]></code>
-      <code><![CDATA[$x['reply_markup']['rows'][$key]['buttons'][$bkey]]]></code>
     </MixedArrayOffset>
     <MixedArrayTypeCoercion>
       <code><![CDATA[$this->afterConstructorDeserialization[$x['_']]]]></code>
@@ -7363,8 +7349,6 @@
       <code><![CDATA[$arguments[$flag]]]></code>
       <code><![CDATA[$arguments[$flag]]]></code>
       <code><![CDATA[$arguments[$flag]]]></code>
-      <code><![CDATA[$bkey]]></code>
-      <code><![CDATA[$button]]></code>
       <code><![CDATA[$concat]]></code>
       <code><![CDATA[$concat]]></code>
       <code><![CDATA[$constructorData]]></code>
@@ -7390,7 +7374,6 @@
       <code><![CDATA[$k]]></code>
       <code><![CDATA[$key]]></code>
       <code><![CDATA[$key]]></code>
-      <code><![CDATA[$key]]></code>
       <code><![CDATA[$long_len]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$name]]></code>
@@ -7405,7 +7388,6 @@
       <code><![CDATA[$predicate]]></code>
       <code><![CDATA[$res[$pair['key']]]]></code>
       <code><![CDATA[$result []]]></code>
-      <code><![CDATA[$row]]></code>
       <code><![CDATA[$this->secretLayer]]></code>
       <code><![CDATA[$this->secretLayer]]></code>
       <code><![CDATA[$tl]]></code>
@@ -7665,25 +7647,12 @@
     <MissingReturnType>
       <code><![CDATA[click]]></code>
     </MissingReturnType>
-    <MixedArrayAccess>
-      <code><![CDATA[$API->authorization['user']['id']]]></code>
-    </MixedArrayAccess>
-    <MixedArrayOffset>
-      <code><![CDATA[$this->button[$name]]]></code>
-      <code><![CDATA[$this->button[$name]]]></code>
-      <code><![CDATA[$this->button[$name]]]></code>
-      <code><![CDATA[$this->button[$name]]]></code>
-    </MixedArrayOffset>
+    <MixedArgument>
+      <code><![CDATA[$this->button['text']]]></code>
+    </MixedArgument>
     <MixedAssignment>
-      <code><![CDATA[$this->id]]></code>
       <code><![CDATA[$this->label]]></code>
-      <code><![CDATA[$this->peer]]></code>
-      <code><![CDATA[$this->peer]]></code>
     </MixedAssignment>
-    <PossiblyNullArrayAccess>
-      <code><![CDATA[$API->authorization['user']]]></code>
-      <code><![CDATA[$API->authorization['user']['id']]]></code>
-    </PossiblyNullArrayAccess>
   </file>
   <file src="src/Tools.php">
     <InvalidOperand>

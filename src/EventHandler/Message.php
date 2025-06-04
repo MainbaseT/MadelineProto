@@ -189,7 +189,7 @@ abstract class Message extends AbstractMessage
             : null;
 
         $this->keyboard = isset($rawMessage['reply_markup'])
-            ? Keyboard::fromRawReplyMarkup($rawMessage['reply_markup'])
+            ? Keyboard::fromRawReplyMarkup($API, $this, $rawMessage['reply_markup'])
             : null;
 
         $this->poll = ($rawMessage['media']['_'] ?? '') === 'messageMediaPoll'

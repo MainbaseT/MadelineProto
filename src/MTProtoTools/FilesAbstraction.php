@@ -1120,8 +1120,11 @@ trait FilesAbstraction
                 'noforwards' => $noForwards,
                 'update_stickersets_order' => $updateStickersetsOrder,
                 'peer' => $peer,
-                'reply_to_msg_id' => $replyToMsgId,
-                'top_msg_id' => $topMsgId,
+                'reply_to' => $replyToMsgId !== null || $topMsgId !== null ? [
+                    '_' => 'inputReplyToMessage',
+                    'reply_to_msg_id' => $replyToMsgId,
+                    'top_msg_id' => $topMsgId,
+                ] : null,
                 'message' => $caption,
                 'reply_markup' => $replyMarkup,
                 'parse_mode' => $parseMode,
