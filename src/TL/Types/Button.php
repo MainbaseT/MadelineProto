@@ -20,7 +20,6 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\TL\Types;
 
-use ArrayAccess;
 use danog\MadelineProto\EventHandler\Message;
 use danog\MadelineProto\Ipc\IpcCapable;
 use danog\MadelineProto\MTProto;

@@ -42,6 +42,7 @@ abstract class Keyboard
         $this->buttons = $buttons;
     }
 
+    /** @internal */
     public static function fromRawReplyMarkup(MTProto $API, Message $message, array $rawReplyMarkup): ?self
     {
         return match ($rawReplyMarkup['_']) {
