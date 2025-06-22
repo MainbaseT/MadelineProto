@@ -33,7 +33,6 @@ steps:
     commands:
       - export PLATFORM=${platform}
       - export PHP_VERSION=${php}
-      - apk add bash
       - /bin/bash -e tests/makephar.sh
 
 services:

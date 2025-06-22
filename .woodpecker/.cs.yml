@@ -22,7 +22,6 @@ steps:
         - tag
         - push
     commands:
-      - apk add bash
       - tests/test.sh cs
 
   psalm:
@@ -34,5 +33,4 @@ steps:
         - tag
         - push
     commands:
-      - apk add bash
       - tests/test.sh psalm
