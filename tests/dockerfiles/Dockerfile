@@ -194,7 +194,7 @@ RUN set -eux; \
 COPY tests/dockerfiles/docker-php-* /usr/local/bin/
 ADD https://raw.githubusercontent.com/php/php-src/refs/heads/PHP-8.4/.gdbinit /root/.gdbinit
 
-RUN apt-get update && apt-get -y --no-install-recommends install libuv1-dev ssh git unzip libjemalloc2 ffmpeg nghttp2 && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get -y --no-install-recommends install libuv1-dev libjudy-dev ssh git unzip libjemalloc2 ffmpeg nghttp2 && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN pecl install igbinary uv-beta pgsql memprof
 

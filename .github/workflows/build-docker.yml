@@ -31,8 +31,6 @@ jobs:
     runs-on: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # required for composer to automatically detect root package version
 
       # https://github.com/docker/setup-buildx-action
       - name: Set up Docker Buildx
