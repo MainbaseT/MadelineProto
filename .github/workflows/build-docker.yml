@@ -69,4 +69,5 @@ jobs:
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker buildx imagetools create -t danog/madelineproto:debian danog/madelineproto:next-debian-{arm,amd}64
+          docker buildx imagetools create -t danog/madelineproto:next danog/madelineproto:next-debian-{arm,amd}64
           #docker buildx imagetools create -t danog/madelineproto:latest danog/madelineproto:next-debian-{arm,amd}64
