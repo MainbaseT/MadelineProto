@@ -8,6 +8,8 @@ php composer-setup.php
 php -r "unlink('composer-setup.php');"
 mv composer.phar /usr/local/bin/composer
 
+apt-get update && apt-get install -y wget
+
 mkdir -p -m 755 /etc/apt/keyrings
 out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg
 cat $out | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null

@@ -3,6 +3,7 @@
 set -ex
 
 export COMPOSER_PROCESS_TIMEOUT=100000
+apt-get update && apt-get install -y wget
 
 mkdir -p -m 755 /etc/apt/keyrings
 out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg
