@@ -23,9 +23,6 @@ jobs:
         image:
           - ubuntu-latest
           - ubuntu-24.04-arm
-        arch:
-          - amd64
-          - arm64
         include:
           - image: ubuntu-latest
             arch: amd64
