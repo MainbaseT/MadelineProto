@@ -146,7 +146,7 @@ RUN set -eux; \
 		--with-iconv \
 		--with-openssl \
 		--with-readline \
-		--with-zlib --with-ffi --enable-intl --with-gmp --with-pdo-mysql --with-zip --enable-gd \
+		--with-zlib --with-ffi --enable-intl --with-gmp --with-pdo-mysql --with-zip --enable-gd --with-tidy \
 		\
 # in PHP 7.4+, the pecl/pear installers are officially deprecated (requiring an explicit "--with-pear")
 		--with-pear \
