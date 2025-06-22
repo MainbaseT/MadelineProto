@@ -198,7 +198,7 @@ RUN apt-get update && apt-get -y --no-install-recommends install libjudydebian1 
 
 RUN pecl install igbinary uv-beta pgsql memprof
 
-RUN apt-get remove libuv1-dev libjudy-dev $PHPIZE_DEPS
+RUN apt-get -y remove libuv1-dev libjudy-dev $PHPIZE_DEPS
 
 ADD tests/dockerfiles/php.ini /usr/local/etc/php/php.ini
 
