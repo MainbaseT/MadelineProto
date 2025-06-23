@@ -219,6 +219,9 @@ trait Session
      */
     public function backupSession(): array
     {
+        if (!isset($this->mainPendingOutgoing)) {
+            return [];
+        }
         $pending = [];
         $message = $this->mainPendingOutgoing;
         while (true) {
