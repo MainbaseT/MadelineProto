@@ -3213,10 +3213,6 @@
       <code><![CDATA[$difference]]></code>
       <code><![CDATA[$difference]]></code>
     </PossiblyUndefinedVariable>
-    <PropertyNotSetInConstructor>
-      <code><![CDATA[$authorizedDc]]></code>
-      <code><![CDATA[UpdateLoop]]></code>
-    </PropertyNotSetInConstructor>
     <RedundantConditionGivenDocblockType>
       <code><![CDATA[$this->API->feeders[$channelId]?->resume()]]></code>
     </RedundantConditionGivenDocblockType>
@@ -3827,6 +3823,9 @@
       <code><![CDATA[$this->check_queue ??= new WeakMap]]></code>
       <code><![CDATA[$this->unencrypted_check_queue ??= new WeakMap]]></code>
     </PropertyTypeCoercion>
+    <RedundantCondition>
+      <code><![CDATA[\assert($message instanceof MTProtoOutgoingMessage)]]></code>
+    </RedundantCondition>
   </file>
   <file src="src/MTProtoTools/AuthKeyHandler.php">
     <MixedArgument>
