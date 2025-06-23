@@ -161,6 +161,7 @@ final class DataCenterConnection implements SimpleSubscriber
     }
     private function initAuthorization(ConnectionState $state): void
     {
+        $this->connect();
         $logger = $this->API->logger;
         $this->waitGetConnection();
         $connection = $this->getAuthConnection();
