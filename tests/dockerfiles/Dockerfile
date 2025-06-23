@@ -95,7 +95,7 @@ RUN set -eux; \
 		libssl-dev \
 		libxml2-dev \
 		zlib1g-dev \
-		libcapstone-dev libffi-dev libpng-dev libgmp-dev libzip-dev libtidy-dev \
+		libcapstone-dev libffi-dev libpq-dev libpng-dev libgmp-dev libzip-dev libtidy-dev \
 	; \
 	\
 	export \
@@ -118,7 +118,7 @@ RUN set -eux; \
 	./buildconf; \
 	./configure \
 		--build="$gnuArch" \
-		--with-config-file-path="$PHP_INI_DIR" \
+		--with-config-file-path="$PHP_INI_DIR" --with-pgsql \
 		--with-config-file-scan-dir="$PHP_INI_DIR/conf.d" \
 		\
 # make sure invalid --configure-flags are fatal errors instead of just warnings
@@ -243,7 +243,7 @@ ADD https://raw.githubusercontent.com/php/php-src/refs/heads/PHP-8.4/.gdbinit /r
 
 RUN apt-get update && apt-get -y --no-install-recommends install libjudydebian1 libuv1 libuv1-dev libjudy-dev ssh git unzip libjemalloc2 ffmpeg nghttp2 && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN pecl install igbinary uv-beta pgsql memprof
+RUN pecl install igbinary uv-beta memprof
 
 RUN apt-get -y remove libuv1-dev libjudy-dev $PHPIZE_DEPS
 
