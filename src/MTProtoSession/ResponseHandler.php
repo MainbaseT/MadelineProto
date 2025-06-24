@@ -236,8 +236,6 @@ trait ResponseHandler
             }
             $request->reply(static fn () => RPCErrorException::make('Received bad_msg_notification: ' . MTProto::BAD_MSG_ERROR_CODES[$response['error_code']], $response['error_code'], $request->constructor));
             return;
-        } elseif ($constructor === 'auth.authorization') {
-            EventLoop::queue($this->API->processAuthorization(...), $response, $this->datacenter);
         }
 
         if (isset($response['_']) && !$this->shared->auth->isCdn) {

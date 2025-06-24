@@ -1996,6 +1996,11 @@ final class MTProto implements TLCallback, LoggerGetter, SettingsGetter
     {
         $this->config = $config;
     }
+    /** @internal */
+    public function handleAuthorization(array $authorization, Connection $connection): void
+    {
+        EventLoop::queue($this->processAuthorization(...), $authorization, $connection->getDatacenter());
+    }
     /**
      * @internal
      */
@@ -2005,6 +2010,7 @@ final class MTProto implements TLCallback, LoggerGetter, SettingsGetter
         return [
             'help.support' => [$this->populateSupportUser(...)],
             'config' => [$this->populateConfig(...)],
+            'auth.authorization' => [$this->handleAuthorization(...)],
         ];
     }
     /**

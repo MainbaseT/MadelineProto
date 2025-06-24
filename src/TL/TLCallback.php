@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\TL;
 
+use danog\MadelineProto\Connection;
 use danog\MadelineProto\MTProto\MTProtoOutgoingMessage;
 
 /**
@@ -28,7 +29,7 @@ use danog\MadelineProto\MTProto\MTProtoOutgoingMessage;
  *
  * @psalm-type TBeforeConstructorSerialization=Closure(array): mixed
  * @psalm-type TBeforeConstructorDeserialization=Closure(string): void
- * @psalm-type TAfterConstructorDeserialization=Closure(array): void
+ * @psalm-type TAfterConstructorDeserialization=Closure(array, Connection): void
  * @psalm-type TTypeMismatch=Closure(array): mixed
  *
  * @internal Interface for managing TL serialization callbacks.

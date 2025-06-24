@@ -1111,7 +1111,7 @@ final class TL implements TLInterface
         if ($type['encrypted']) {
             if (isset($this->afterConstructorDeserialization[$x['_']])) {
                 foreach ($this->afterConstructorDeserialization[$x['_']] as $callback) {
-                    $callback($x);
+                    $callback($x, $type['connection']);
                 }
             } elseif ($x['_'] === 'rpc_result'
                 && isset($type['connection']->new_outgoing[$x['req_msg_id']])

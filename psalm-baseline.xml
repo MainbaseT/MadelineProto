@@ -7187,6 +7187,7 @@
       <code><![CDATA[$tl['layer'] ?? -1]]></code>
       <code><![CDATA[$tl['layer'] ?? -1]]></code>
       <code><![CDATA[$type]]></code>
+      <code><![CDATA[$type['connection']]]></code>
       <code><![CDATA[$type['subtype']]]></code>
       <code><![CDATA[$type['type']]]></code>
       <code><![CDATA[$type['type']]]></code>

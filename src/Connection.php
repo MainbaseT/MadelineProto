@@ -228,6 +228,10 @@ final class Connection
     {
         return $this->datacenterId;
     }
+    public function getDatacenter(): int
+    {
+        return $this->datacenter;
+    }
     /**
      * Get connection context.
      */
