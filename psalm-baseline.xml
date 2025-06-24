@@ -3249,6 +3249,7 @@
     <ImpureStaticProperty>
       <code><![CDATA[GarbageCollector::$prometheus]]></code>
       <code><![CDATA[GarbageCollector::$prometheus]]></code>
+      <code><![CDATA[Lang::$current_lang]]></code>
       <code><![CDATA[Magic::$isIpcWorker]]></code>
     </ImpureStaticProperty>
     <InvalidArgument>
