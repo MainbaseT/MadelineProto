@@ -1109,10 +1109,10 @@ final class MTProto implements TLCallback, LoggerGetter, SettingsGetter
         $this->logger->logger(Lang::$current_lang['serialization_ofd'], Logger::WARNING);
         $this->settings->setSchema(new TLSchema);
 
+        $this->cleanupProperties();
         $this->resetMTProtoSession("upgrading madelineproto", true, true);
         $this->config = ['expires' => -1];
         $this->dh_config = ['version' => 0];
-        $this->cleanupProperties();
         $this->initialize($this->settings);
         foreach ($this->secretChats as $chat) {
             try {
