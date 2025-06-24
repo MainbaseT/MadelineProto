@@ -40,6 +40,7 @@ class MTProtoOutgoingMessage extends MTProtoMessage
 {
     public self|LinkedList $next;
     public self|LinkedList $prev;
+    protected ?Container $container = null;
 
     /**
      * The message was created.
@@ -278,13 +279,16 @@ class MTProtoOutgoingMessage extends MTProtoMessage
         }
         if ($this->msgId !== null) {
             if ($this->unencrypted) {
-                unset(
-                    $this->connection->unencrypted_new_outgoing[$this->msgId],
-                );
+                unset($this->connection->unencrypted_new_outgoing[$this->msgId]);
             } else {
-                unset(
-                    $this->connection->new_outgoing[$this->msgId],
-                );
+                unset($this->connection->new_outgoing[$this->msgId]);
+            }
+        }
+        if ($this->container !== null) {
+            if ($this->unencrypted) {
+                unset($this->connection->unencrypted_new_outgoing[$this->container->msgId]);
+            } else {
+                unset($this->connection->new_outgoing[$this->container->msgId]);
             }
         }
 

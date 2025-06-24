@@ -41,5 +41,8 @@ final class Container extends MTProtoOutgoingMessage
         public readonly array $acks,
     ) {
         parent::__construct($connection, [], 'msg_container', '', false, false, null, null);
+        foreach ($msgs as $msg) {
+            $msg->container = $this;
+        }
     }
 }

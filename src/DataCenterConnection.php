@@ -24,6 +24,7 @@ use Amp\DeferredFuture;
 use Amp\Future;
 use danog\MadelineProto\Loop\Generic\PeriodicLoopInternal;
 use danog\MadelineProto\MTProto\ConnectionState;
+use danog\MadelineProto\MTProto\Container;
 use danog\MadelineProto\MTProto\MTProtoOutgoingMessage;
 use danog\MadelineProto\MTProto\NewAuthKey;
 use danog\MadelineProto\MTProto\PermAuthKey;
@@ -416,18 +417,18 @@ final class DataCenterConnection implements SimpleSubscriber
         $this->API->logger("Restoring {$count} messages to DC {$this->datacenter}");
         /** @var MTProtoOutgoingMessage */
         foreach ($backup as $message) {
+            if ($message instanceof Container || $message->getState() & MTProtoOutgoingMessage::STATE_REPLIED) {
+                continue;
+            }
             if ($message->hasSeqno()) {
                 $message->setSeqno(null);
             }
             if ($message->hasMsgId()) {
                 $message->setMsgId(null);
             }
-            if (!($message->getState() & MTProtoOutgoingMessage::STATE_REPLIED)) {
-                $this->API->logger("Resending $message to DC {$this->datacenter}");
-                EventLoop::queue($this->getConnection()->sendMessage(...), $message);
-            } else {
-                $this->API->logger("Dropping $message to DC {$this->datacenter}");
-            }
+            $message->connection = $connection = $this->getConnection();
+            $this->API->logger("Resending $message to DC {$this->datacenter}");
+            EventLoop::queue($connection->sendMessage(...), $message);
         }
     }
     /**

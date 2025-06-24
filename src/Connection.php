@@ -557,12 +557,12 @@ final class Connection
             unset($body);
         }
         $this->connect();
+        $this->pendingOutgoingGauge?->inc();
         if ($message->unencrypted) {
             $this->unencryptedPendingOutgoing->enqueue($message);
         } elseif ($message->specialMethodType === SpecialMethodType::UNAUTHED_METHOD) {
             $this->uninitedPendingOutgoing->enqueue($message);
         } else {
-            $this->pendingOutgoingGauge?->inc();
             $this->mainPendingOutgoing->enqueue($message);
         }
         $this->flush();

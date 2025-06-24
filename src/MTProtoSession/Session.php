@@ -219,19 +219,19 @@ trait Session
      */
     public function backupSession(): array
     {
-        if (!isset($this->mainPendingOutgoing)) {
-            return [];
-        }
-        $pending = [];
-        $message = $this->mainPendingOutgoing;
-        while (true) {
-            $message = $message->prev;
-            if ($message === $this->mainPendingOutgoing) {
-                break;
+        $pending = array_merge($this->new_outgoing, $this->unencrypted_new_outgoing);
+        foreach ([$this->mainPendingOutgoing ?? null, $this->unencryptedPendingOutgoing ?? null, $this->uninitedPendingOutgoing ?? null] as $k => $list) {
+            $message = $list;
+            while ($message !== null) {
+                $message = $message->prev;
+                if ($message === $list) {
+                    break;
+                }
+                \assert($message instanceof MTProtoOutgoingMessage);
+                $message->unlink();
+                $pending []= $message;
             }
-            \assert($message instanceof MTProtoOutgoingMessage);
-            $pending []= $message;
         }
-        return array_merge($pending, $this->new_outgoing, $this->unencrypted_new_outgoing);
+        return $pending;
     }
 }
