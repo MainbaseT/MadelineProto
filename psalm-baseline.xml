@@ -2862,6 +2862,9 @@
     </PropertyNotSetInConstructor>
   </file>
   <file src="src/Loop/Connection/WriteLoop.php">
+    <ImplicitToStringCast>
+      <code><![CDATA[$msg]]></code>
+    </ImplicitToStringCast>
     <InvalidPropertyAssignmentValue>
       <code><![CDATA[$this->connection->ack_queue]]></code>
     </InvalidPropertyAssignmentValue>
