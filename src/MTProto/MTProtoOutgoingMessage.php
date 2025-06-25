@@ -145,10 +145,11 @@ class MTProtoOutgoingMessage extends MTProtoMessage
 
             if ($self->hasMsgId()) {
                 $self->connection->API->logger("Cancelling $self...");
-                $self->connection->API->logger($self->connection->methodCallAsyncRead(
+                $self->connection->API->logger($self->connection->objectCallAsync(
                     'rpc_drop_answer',
                     ['req_msg_id' => $self->getMsgId()]
                 ));
+                $self->connection->flush(true);
             }
         });
     }
