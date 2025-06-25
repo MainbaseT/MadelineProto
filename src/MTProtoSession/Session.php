@@ -189,9 +189,9 @@ trait Session
                 10000_000_000,
             ]
         );
-        $this->mainPendingOutgoing ??= new LinkedList($this->datacenter, $this->API);
-        $this->unencryptedPendingOutgoing ??= new LinkedList($this->datacenter, $this->API);
-        $this->uninitedPendingOutgoing ??= new LinkedList($this->datacenter, $this->API);
+        $this->mainPendingOutgoing ??= new LinkedList;
+        $this->unencryptedPendingOutgoing ??= new LinkedList;
+        $this->uninitedPendingOutgoing ??= new LinkedList;
         if ($this->session_id === null) {
             $this->resetSession("creating initial session");
         }
