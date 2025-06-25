@@ -298,6 +298,7 @@ trait ResponseHandler
             && !$request->shouldRefreshReferences()
         ) {
             $this->API->logger("Got {$response['error_message']}, refreshing file reference and repeating method call...");
+            $request->setRefreshReferences(true);
             $this->methodRecall($request, $this->datacenter);
             return null;
         }
