@@ -22,7 +22,6 @@ namespace danog\MadelineProto\Loop\Connection;
 
 use Amp\ByteStream\StreamException;
 use Amp\DeferredFuture;
-use AssertionError;
 use danog\Loop\Loop;
 use danog\MadelineProto\Connection;
 use danog\MadelineProto\Logger;

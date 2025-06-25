@@ -422,7 +422,7 @@ final class DataCenterConnection implements SimpleSubscriber
                 $message->setMsgId(null);
             }
             $message->connection = $connection = $this->getConnection();
-            $this->API->logger("Resending $message to DC {$this->datacenter}");
+            $this->API->logger("Restoring $message to DC {$this->datacenter}");
             EventLoop::queue($connection->sendMessage(...), $message);
         }
     }

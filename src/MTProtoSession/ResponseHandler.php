@@ -341,7 +341,7 @@ trait ResponseHandler
             case 400:
                 if ($response['error_message'] === 'CONNECTION_NOT_INITED') {
                     $this->shared->auth->connectionState->publish(ConnectionState::ENCRYPTED_NOT_INITED);
-                    $this->API->logger("Resending $request...");
+                    $this->API->logger("Resending $request due to CONNECTION_NOT_INITED...");
                     $this->methodRecall($request, $this->datacenter);
                     return null;
                 }

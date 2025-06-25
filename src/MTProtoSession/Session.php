@@ -189,9 +189,9 @@ trait Session
                 10000_000_000,
             ]
         );
-        $this->mainPendingOutgoing ??= new LinkedList;
-        $this->unencryptedPendingOutgoing ??= new LinkedList;
-        $this->uninitedPendingOutgoing ??= new LinkedList;
+        $this->mainPendingOutgoing ??= new LinkedList($this->datacenter, $this->API);
+        $this->unencryptedPendingOutgoing ??= new LinkedList($this->datacenter, $this->API);
+        $this->uninitedPendingOutgoing ??= new LinkedList($this->datacenter, $this->API);
         if ($this->session_id === null) {
             $this->resetSession("creating initial session");
         }
@@ -209,10 +209,9 @@ trait Session
             $message = $list;
             while ($message !== null) {
                 $message = $message->prev;
-                if ($message === $list) {
+                if (!$message instanceof MTProtoOutgoingMessage) {
                     break;
                 }
-                \assert($message instanceof MTProtoOutgoingMessage);
                 $message->unlink();
                 $pending []= $message;
             }

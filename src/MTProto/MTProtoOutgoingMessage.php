@@ -220,9 +220,22 @@ class MTProtoOutgoingMessage extends MTProtoMessage
     }
     public function unlink(): void
     {
-        $this->next->prev = $this->prev;
-        $this->prev->next = $this->next;
+        if (isset($this->next)) {
+            $this->next->prev = $this->prev;
+            $this->prev->next = $this->next;
+            unset($this->next, $this->prev);
+
+        }
+
         $this->connection->pendingOutgoingGauge?->dec();
+
+        if ($this->unencrypted) {
+            unset($this->connection->unencryptedPendingOutgoing->check_queue[$this]);
+        } elseif ($this->specialMethodType === SpecialMethodType::UNAUTHED_METHOD) {
+            unset($this->connection->uninitedPendingOutgoing->check_queue[$this]);
+        } else {
+            unset($this->connection->mainPendingOutgoing->check_queue[$this]);
+        }
     }
     private function check(): void
     {
