@@ -8269,6 +8269,7 @@
       <code><![CDATA[$authorization['expires']]]></code>
       <code><![CDATA[$dc]]></code>
       <code><![CDATA[$this->API->loginState->getState()->setDc($datacenter)]]></code>
+      <code><![CDATA[$this->loginState->getState()->setStateDc(API::LOGGED_IN, $datacenter)]]></code>
     </MixedArgument>
     <MixedArrayAccess>
       <code><![CDATA[$authorization['_']]]></code>
@@ -8292,12 +8293,15 @@
       <code><![CDATA[$dc]]></code>
       <code><![CDATA[$res]]></code>
       <code><![CDATA[$res]]></code>
+      <code><![CDATA[$res]]></code>
+      <code><![CDATA[$res]]></code>
       <code><![CDATA[$this->authorization]]></code>
       <code><![CDATA[$this->authorization]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[getState]]></code>
       <code><![CDATA[setDc]]></code>
+      <code><![CDATA[setStateDc]]></code>
     </MixedMethodCall>
     <MixedOperand>
       <code><![CDATA[$authorization['dc_id']]]></code>
