@@ -42,10 +42,19 @@ final class LoginState
         if ($state === $this->state) {
             return $this;
         }
-        return new self($state, $this->authorizedDc);
+        return new self($state, $state === API::LOGGED_OUT ? null : $this->authorizedDc);
+    }
+    /** @param API::NOT_LOGGED_IN|API::WAITING_*|API::LOGGED_IN|API::LOGGED_OUT $state */
+    public function setStateDc(int $state, ?int $dc): self
+    {
+        if ($state === $this->state && $dc === $this->authorizedDc) {
+            return $this;
+        }
+        return new self($state, $dc);
     }
     public function setDc(int $dc): self
     {
+        $dc = $this->state === API::LOGGED_OUT ? null : $dc;
         if ($dc === $this->authorizedDc) {
             return $this;
         }

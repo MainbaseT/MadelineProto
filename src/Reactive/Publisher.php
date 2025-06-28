@@ -103,7 +103,7 @@ final class Publisher
     /** @param T $state */
     public function publish($state): void
     {
-        if ($state != $this->state) {
+        if ($state !== $this->state) {
             $prev = $this->state;
             $this->state = $state;
             $this->wokeup = true;

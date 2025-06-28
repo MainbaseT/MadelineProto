@@ -156,10 +156,9 @@ trait Login
     public function logout(): void
     {
         if ($this->loginState->getState()->state === API::LOGGED_IN) {
-            $this->loginState->publish(new LoginState(API::LOGGED_OUT, null));
             $this->methodCallAsyncRead('auth.logOut', []);
         }
-        $this->loginState->publish(new LoginState(API::LOGGED_OUT, null));
+        $this->setLoginState(API::LOGGED_OUT);
         if ($this->hasEventHandler()) {
             $this->stop();
         } else {
@@ -272,7 +271,7 @@ trait Login
         $this->logger->logger("Setting auth key in DC $mainDcID", Logger::NOTICE);
         $dataCenterConnection->auth->setAuthKey($auth_key['auth_key']);
         $dataCenterConnection->auth->connectionState->waitForState(ConnectionState::ENCRYPTED_NOT_AUTHED_NO_LOGIN);
-        $this->loginState->publish(new LoginState(API::LOGGED_IN, $mainDcID));
+        $this->loginState->publish($this->loginState->getState()->setStateDc(API::LOGGED_IN, $mainDcID));
 
         $res = $this->fullGetSelf();
         $callbacks = [$this, $this->referenceDatabase, $this->peerDatabase];
@@ -284,6 +283,7 @@ trait Login
         $this->qrLoginDeferred?->cancel();
         $this->qrLoginDeferred = null;
         $this->fullGetSelf();
+        $this->initDb();
         return $res;
     }
     /**
@@ -341,13 +341,12 @@ trait Login
             return;
         }
         $this->authorization = $authorization;
-        $this->loginState->publish(new LoginState(API::LOGGED_IN, $datacenter));
         $this->qrLoginDeferred?->cancel();
         $this->qrLoginDeferred = null;
-        $this->logger->logger(Lang::$current_lang['login_ok'], Logger::NOTICE);
-        $this->fullGetSelf();
         $this->initDb();
+        $this->loginState->publish($this->loginState->getState()->setStateDc(API::LOGGED_IN, $datacenter));
         $this->serialize();
+        $this->logger->logger(Lang::$current_lang['login_ok'], Logger::NOTICE);
     }
     /**
      * Update the 2FA password.
