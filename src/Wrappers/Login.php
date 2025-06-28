@@ -24,6 +24,7 @@ use Amp\Cancellation;
 use Amp\CancelledException;
 use Amp\DeferredCancellation;
 use Amp\DeferredFuture;
+use Amp\Future;
 use AssertionError;
 use danog\MadelineProto\API;
 use danog\MadelineProto\DataCenter;
@@ -48,6 +49,7 @@ use danog\MadelineProto\Tools;
  * @property Settings     $settings    Settings
  * @property ?LoginQrCode $loginQrCode
  * @property Publisher<LoginState> $loginState
+ * @property ?Future      $authFuture
  * @internal
  */
 trait Login
@@ -66,7 +68,7 @@ trait Login
         /** @psalm-suppress InvalidArgument */
         $this->TL->updateCallbacks($callbacks);
         $this->logger->logger(Lang::$current_lang['login_bot'], Logger::NOTICE);
-        return $this->methodCallAsyncRead(
+        $res = $this->methodCallAsyncRead(
             'auth.importBotAuthorization',
             [
                 'bot_auth_token' => $token,
@@ -75,6 +77,8 @@ trait Login
                 'specialMethodType' => SpecialMethodType::USER_RELATED,
             ],
         );
+        $this->authFuture?->await();
+        return $res;
     }
 
     private ?DeferredCancellation $qrLoginDeferred = null;
@@ -87,6 +91,7 @@ trait Login
      */
     public function qrLogin(): ?LoginQrCode
     {
+        $this->authFuture?->await();
         $s = $this->loginState->getState()->state;
         if ($s === \danog\MadelineProto\API::LOGGED_IN) {
             return null;
@@ -134,6 +139,7 @@ trait Login
                 $this->qrLoginDeferred = null;
                 return null;
             }
+            $this->authFuture?->await();
             return null;
         }
         return $this->loginQrCode;
@@ -246,6 +252,7 @@ trait Login
             $authorization['_'] = 'account.needSignup';
             return $authorization;
         }
+        $this->authFuture?->await();
         return $authorization;
     }
     /**
@@ -314,7 +321,9 @@ trait Login
         }
         $this->setLoginState(API::NOT_LOGGED_IN);
         $this->logger->logger(Lang::$current_lang['signing_up'], Logger::NOTICE);
-        return $this->methodCallAsyncRead('auth.signUp', ['phone_number' => $this->authorization['phone_number'], 'phone_code_hash' => $this->authorization['phone_code_hash'], 'phone_code' => $this->authorization['phone_code'], 'first_name' => $first_name, 'last_name' => $last_name, 'specialMethodType' => SpecialMethodType::USER_RELATED]);
+        $res = $this->methodCallAsyncRead('auth.signUp', ['phone_number' => $this->authorization['phone_number'], 'phone_code_hash' => $this->authorization['phone_code_hash'], 'phone_code' => $this->authorization['phone_code'], 'first_name' => $first_name, 'last_name' => $last_name, 'specialMethodType' => SpecialMethodType::USER_RELATED]);
+        $this->authFuture?->await();
+        return $res;
     }
     /**
      * Complete 2FA login.
@@ -332,6 +341,7 @@ trait Login
         } catch (PasswordHashInvalidError) {
             $res = $this->methodCallAsyncRead('auth.checkPassword', ['password' => $password, 'specialMethodType' => SpecialMethodType::USER_RELATED]);
         }
+        $this->authFuture?->await();
         return $res;
     }
     /** @internal */
@@ -341,10 +351,10 @@ trait Login
             return;
         }
         $this->authorization = $authorization;
-        $this->qrLoginDeferred?->cancel();
-        $this->qrLoginDeferred = null;
         $this->initDb();
         $this->loginState->publish($this->loginState->getState()->setStateDc(API::LOGGED_IN, $datacenter));
+        $this->qrLoginDeferred?->cancel();
+        $this->qrLoginDeferred = null;
         $this->serialize();
         $this->logger->logger(Lang::$current_lang['login_ok'], Logger::NOTICE);
     }

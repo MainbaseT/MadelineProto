@@ -507,6 +507,7 @@ final class MTProto implements TLCallback, LoggerGetter, SettingsGetter
     }
 
     private ?Future $initPromise = null;
+    private ?Future $authFuture = null;
 
     /**
      * Constructor function.
@@ -1999,7 +2000,12 @@ final class MTProto implements TLCallback, LoggerGetter, SettingsGetter
     /** @internal */
     public function handleAuthorization(array $authorization, Connection $connection): void
     {
-        EventLoop::queue($this->processAuthorization(...), $authorization, $connection->getDatacenter());
+        $this->authFuture = $f = async($this->processAuthorization(...), $authorization, $connection->getDatacenter());
+        $f->finally(function () use ($f): void {
+            if ($f === $this->authFuture) {
+                $this->authFuture = null;
+            }
+        });
     }
     /**
      * @internal
