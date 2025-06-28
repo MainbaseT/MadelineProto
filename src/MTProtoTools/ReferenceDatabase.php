@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace danog\MadelineProto\MTProtoTools;
 
 use Amp\Sync\LocalKeyedMutex;
+use Closure;
 use danog\AsyncOrm\Annotations\OrmMappedArray;
 use danog\AsyncOrm\DbArray;
 use danog\AsyncOrm\KeyType;
@@ -452,7 +453,7 @@ final class ReferenceDatabase implements TLCallback
         Assert::false($this->refresh, 'Cannot enable refresh when it is already enabled');
         $this->refresh = true;
     }
-    public function refreshNextDisable(): void
+    public function refreshNextDisable(): ?Closure
     {
         Assert::true($this->refresh, 'Cannot disable refresh when it is already disabled');
         $this->refresh = false;
@@ -460,66 +461,72 @@ final class ReferenceDatabase implements TLCallback
         $this->refreshQueue = [];
 
         $ok = false;
-        foreach ($queue as $locationString => $data) {
+        foreach ($queue as $locationString => $_) {
+            $data = $this->getDb($locationString);
             $data['reference'] = (string) $data['reference'];
             $count = 0;
-            foreach ($data['origins'] as $originType => $origin) {
+            foreach ($data['origins'] ?? [] as $originType => $origin) {
                 $count++;
                 $this->API->logger("Try {$count} refreshing file reference with origin type {$originType}", Logger::VERBOSE);
                 $origin['specialMethodType'] = SpecialMethodType::FILEREF_RELATED;
-                switch ($originType) {
-                    // Peer + msg ID
-                    case self::MESSAGE_ORIGIN:
-                        if (\is_array($origin['peer'])) {
-                            $origin['peer'] = $this->API->getIdInternal($origin['peer']);
-                        }
-                        if ($origin['peer'] < 0) {
-                            $this->API->methodCallAsyncRead('channels.getMessages', ['channel' => $origin['peer'], 'id' => [$origin['msg_id']]]);
+                try {
+                    switch ($originType) {
+                        // Peer + msg ID
+                        case self::MESSAGE_ORIGIN:
+                            if (\is_array($origin['peer'])) {
+                                $origin['peer'] = $this->API->getIdInternal($origin['peer']);
+                            }
+                            if ($origin['peer'] < 0) {
+                                $this->API->methodCallAsyncRead('channels.getMessages', ['channel' => $origin['peer'], 'id' => [$origin['msg_id']]]);
+                                break;
+                            }
+                            $this->API->methodCallAsyncRead('messages.getMessages', ['id' => [$origin['msg_id']]]);
                             break;
-                        }
-                        $this->API->methodCallAsyncRead('messages.getMessages', ['id' => [$origin['msg_id']]]);
+                            // Peer + photo ID
+                        case self::PEER_PHOTO_ORIGIN:
+                            $this->API->peerDatabase->expireFull($origin['peer']);
+                            $this->API->getFullInfo($origin['peer']);
+                            break;
+                            // Peer (default photo ID)
+                        case self::USER_PHOTO_ORIGIN:
+                            $this->API->methodCallAsyncRead('photos.getUserPhotos', $origin);
+                            break;
+                        case self::SAVED_GIFS_ORIGIN:
+                            $this->API->methodCallAsyncRead('messages.getSavedGifs', $origin);
+                            break;
+                        case self::STICKER_SET_ID_ORIGIN:
+                            $this->API->methodCallAsyncRead('messages.getStickerSet', $origin);
+                            break;
+                        case self::STICKER_SET_RECENT_ORIGIN:
+                            $this->API->methodCallAsyncRead('messages.getRecentStickers', $origin);
+                            break;
+                        case self::STICKER_SET_FAVED_ORIGIN:
+                            $this->API->methodCallAsyncRead('messages.getFavedStickers', $origin);
+                            break;
+                        case self::STICKER_SET_EMOTICON_ORIGIN:
+                            $this->API->methodCallAsyncRead('messages.getStickers', $origin);
+                            break;
+                        case self::WALLPAPER_ORIGIN:
+                            $this->API->methodCallAsyncRead('account.getWallPapers', $origin);
+                            break;
+                        default:
+                            throw new Exception("Unknown origin type {$originType}");
+                    }
+                    $got = (string) $this->getDb($locationString)['reference'];
+                    if ($got !== $data['reference']) {
+                        $ok = true;
                         break;
-                        // Peer + photo ID
-                    case self::PEER_PHOTO_ORIGIN:
-                        $this->API->peerDatabase->expireFull($origin['peer']);
-                        $this->API->getFullInfo($origin['peer']);
-                        break;
-                        // Peer (default photo ID)
-                    case self::USER_PHOTO_ORIGIN:
-                        $this->API->methodCallAsyncRead('photos.getUserPhotos', $origin);
-                        break;
-                    case self::SAVED_GIFS_ORIGIN:
-                        $this->API->methodCallAsyncRead('messages.getSavedGifs', $origin);
-                        break;
-                    case self::STICKER_SET_ID_ORIGIN:
-                        $this->API->methodCallAsyncRead('messages.getStickerSet', $origin);
-                        break;
-                    case self::STICKER_SET_RECENT_ORIGIN:
-                        $this->API->methodCallAsyncRead('messages.getRecentStickers', $origin);
-                        break;
-                    case self::STICKER_SET_FAVED_ORIGIN:
-                        $this->API->methodCallAsyncRead('messages.getFavedStickers', $origin);
-                        break;
-                    case self::STICKER_SET_EMOTICON_ORIGIN:
-                        $this->API->methodCallAsyncRead('messages.getStickers', $origin);
-                        break;
-                    case self::WALLPAPER_ORIGIN:
-                        $this->API->methodCallAsyncRead('account.getWallPapers', $origin);
-                        break;
-                    default:
-                        throw new Exception("Unknown origin type {$originType}");
-                }
-                $got = (string) $this->getDb($locationString)['reference'];
-                if ($got !== $data['reference']) {
-                    $ok = true;
-                    break;
+                    }
+                } catch (\Throwable $e) {
+                    $this->API->logger("Could not refresh file reference for location {$locationString} with origin type {$originType}: $e", Logger::ERROR);
                 }
             }
         }
         if (!$ok) {
             $count = \count($queue);
-            throw new Exception("Could not refresh file reference for any of the {$count} locations");
+            return static fn () => new Exception("Could not refresh file reference for any of the {$count} locations");
         }
+        return null;
     }
     private function populateReference(array $object): array
     {
@@ -536,7 +543,13 @@ final class ReferenceDatabase implements TLCallback
     public function getReference(int $locationType, array $location): string
     {
         $locationString = self::serializeLocation($locationType, $location);
-        $res = $this->getDb($locationString);
+        if ($this->refresh) {
+            $this->refreshQueue[$locationString] = true;
+            $res = [];
+        } else {
+            $res = $this->getDb($locationString);
+        }
+
         if (!isset($res['reference'])) {
             if (isset($location['file_reference'])) {
                 $this->API->logger("Using outdated file reference for location of type {$locationType} object {$location['_']}", Logger::ULTRA_VERBOSE);
@@ -546,18 +559,14 @@ final class ReferenceDatabase implements TLCallback
                 }
                 return (string) $location['file_reference'];
             }
-            if (!$this->refresh) {
+            if ($this->refresh) {
                 $this->API->logger("Using null file reference for location of type {$locationType} object {$location['_']}", Logger::ULTRA_VERBOSE);
                 return '';
             }
             throw new Exception("Could not find file reference for location of type {$locationType} object {$location['_']}");
         }
-        $this->API->logger("Getting file reference for location of type {$locationType} object {$location['_']}", Logger::ULTRA_VERBOSE);
-        $data = $this->getDb($locationString);
-        if ($this->refresh) {
-            $this->refreshQueue[$locationString] = $data;
-        }
-        return (string) $data['reference'];
+        $this->API->logger("Got file reference for location of type {$locationType} object {$location['_']}", Logger::ULTRA_VERBOSE);
+        return (string) $res['reference'];
     }
     private static function serializeLocation(int $locationType, array $location): string
     {

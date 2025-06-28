@@ -25,6 +25,7 @@ use Amp\DeferredFuture;
 use Amp\Future;
 use Amp\Sync\LocalKeyedMutex;
 use Amp\TimeoutCancellation;
+use Closure;
 use danog\MadelineProto\DataCenterConnection;
 use danog\MadelineProto\MTProto;
 use danog\MadelineProto\MTProto\Container;
@@ -80,7 +81,13 @@ trait CallHandler
         $request->unlink();
         if ($defer) {
             $defer->catch($request->reply(...));
-            $defer->map(fn () => $this->methodRecall($request, $forceDatacenter));
+            $defer->map(function ($result) use ($request, $forceDatacenter): void {
+                if ($result instanceof Closure) {
+                    $request->reply($result);
+                } else {
+                    $this->methodRecall($request, $forceDatacenter);
+                }
+            });
             return;
         }
         $datacenter = $forceDatacenter ?? $this->datacenter;

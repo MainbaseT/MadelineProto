@@ -24,6 +24,7 @@ use Amp\Cancellation;
 use Amp\CancelledException;
 use Amp\DeferredFuture;
 use Amp\Future;
+use Closure;
 use danog\MadelineProto\Connection;
 use danog\MadelineProto\Exception;
 use Revolt\EventLoop;
@@ -400,12 +401,10 @@ class MTProtoOutgoingMessage extends MTProtoMessage
     {
         $this->serializedBody = null;
 
-        return async(function (): void {
+        return async(function (): ?Closure {
             $this->connection->API->referenceDatabase->refreshNextEnable();
             $this->connection->API->getTL()->serializeMethod($this->constructor, $this->body);
-            $this->connection->API->referenceDatabase->refreshNextDisable();
-
-            $this->serializedBody = null;
+            return $this->connection->API->referenceDatabase->refreshNextDisable();
         });
     }
 
