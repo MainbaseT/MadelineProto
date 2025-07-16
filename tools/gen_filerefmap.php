@@ -30,16 +30,16 @@ final class TLContext
         $idx = 0;
         $type = null;
         do {
-            if ($type === null) {
-                $constructor = $this->tl->getConstructors()->findByPredicate($path[$idx]);
-                if ($constructor === false) {
-                    $constructor = $this->tl->getMethods()->findByMethod($path[$idx]);
-                }
-                Assert::notFalse($constructor, "Constructor or method not found for path: " . json_encode($path));
-            } else {
-                $constructor = self::getConstructorsOfType($this->tl, $type)[$path[$idx]] ?? null;
-                Assert::notNull($constructor, "Could not find type {$path[$idx]} for $type, path: " . json_encode($path));
+            if ($type !== null) {
+                $_ = self::getConstructorsOfType($this->tl, $type)[$path[$idx]] ?? null;
+                Assert::notNull($_, "Could not find type {$path[$idx]} for $type, path: " . json_encode($path));
             }
+            $constructor = $this->tl->getConstructors()->findByPredicate($path[$idx]);
+            if ($constructor === false) {
+                $constructor = $this->tl->getMethods()->findByMethod($path[$idx]);
+            }
+            Assert::notFalse($constructor, "Constructor or method not found for path: " . json_encode($path));
+
             $idx++;
             $type = null;
             foreach ($constructor['params'] as $param) {
@@ -47,7 +47,8 @@ final class TLContext
                     $type = $param['type'];
                 }
             }
-            Assert::notNull($type, "Parameter not found in constructor or method: " . json_encode($path));
+            $n = $constructor['predicate'] ?? $constructor['name'];
+            Assert::notNull($type, "Parameter {$path[$idx]} not found in constructor or method $n: " . json_encode($path));
         } while (++$idx < count($path));
 
         return $type;
@@ -62,7 +63,7 @@ final class TLContext
         }
         foreach ($tl->getMethods()->by_id as $method) {
             if ($method['type'] === $type) {
-                $constructors[$method['method']] = true;
+                $constructors[$method['method']] = false;
             }
         }
         Assert::notEmpty($constructors, "No constructors found for type: $type");
@@ -112,6 +113,7 @@ final class ExtractFromHereOp implements Op
 
     public function build(TLContext $tl): array
     {
+        $tl->getTypeAtPosition($this);
         return [
             'op' => 'extractFromHere',
             'path' => $this->path,
@@ -135,6 +137,7 @@ final class ExtractFromRootOp implements Op
 
     public function build(TLContext $tl): array
     {
+        $tl->getTypeAtPosition($this);
         return [
             'op' => 'extractFromRoot',
             'path' => $this->path,
@@ -341,7 +344,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
             }
             $locations[$constructor] = new GetMessageOp(
                 new ExtractFromHereOp($constructor, 'peer_id'),
-                new ExtractFromHereOp($constructor, 'msg_id'),
+                new ExtractFromHereOp($constructor, 'id'),
             );
         }
         return;
@@ -351,7 +354,16 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         return;
     }
     if ($type === 'BotApp') {
-        $locations['botApp'] = CallOp::simple('messages.getBotApp', 'botApp', ['url' => 'url']);
+        $locations['botApp'] = CallOp::simple('messages.getBotApp', 'botApp', [
+            'app' => new ConstructorOp(
+                'inputBotAppID',
+                [
+                    'id' => new ExtractFromHereOp('botApp', 'id'),
+                    'access_hash' => new ExtractFromHereOp('botApp', 'access_hash'),
+                ]
+            ),
+            'hash' => new LiteralOp(0),
+        ]);
         return;
     }
     if ($type === 'BotInfo') {
@@ -427,19 +439,24 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         return;
     }
     if ($type === 'StarsTransaction') {
-        $locations['starsTransaction'] = new CallOp(
-            'payments.getStarsTransactionsByID',
-            [
-                'peer' => new ExtractFromRootOp('payments.StarsStatus', 'peer'),
-                'id' => new ArrayOp(new ConstructorOp(
-                    'inputStarsTransaction',
-                    [
-                        'id' => new ExtractFromHereOp('starsTransaction', 'id'),
-                        'refund' => new ExtractFromHereOp('starsTransaction', 'refund'),
-                    ]
-                )),
-            ]
-        );
+        foreach (TLContext::getConstructorsOfType($TL, $type) as $constructor => $isConstructor) {
+            if ($isConstructor) {
+                continue;
+            }
+            $locations[$constructor] = new CallOp(
+                'payments.getStarsTransactionByID',
+                [
+                    'peer' => new ExtractFromRootOp($constructor, 'peer'),
+                    'id' => new ConstructorOp(
+                        'inputStarsTransaction',
+                        [
+                            'id' => new ExtractFromHereOp($constructor, 'id'),
+                            'refund' => new ExtractFromHereOp($constructor, 'refund'),
+                        ]
+                    ),
+                ]
+            );
+        }
         return;
     }
     if ($type === 'AttachMenuBot') {
@@ -499,19 +516,21 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         return;
     }
     if ($type === 'StickerSetCovered') {
-        $locations['StickerSetCovered'] = new CallOp(
-            'messages.getStickerSet',
-            [
-                'stickerset' => new ConstructorOp(
-                    'inputStickerSetID',
-                    [
-                        'id' => new ExtractFromHereOp('StickerSetCovered', 'set', 'stickerSet', 'id'),
-                        'access_hash' => new ExtractFromHereOp('StickerSetCovered', 'set', 'stickerSet', 'access_hash'),
-                        'hash' => new LiteralOp(0),
-                    ],
-                ),
-            ]
-        );
+        foreach (['stickerSetMultiCovered', 'stickerSetFullCovered'] as $c) {
+            $locations[$c] = new CallOp(
+                'messages.getStickerSet',
+                [
+                    'stickerset' => new ConstructorOp(
+                        'inputStickerSetID',
+                        [
+                            'id' => new ExtractFromHereOp($c, 'set', 'stickerSet', 'id'),
+                            'access_hash' => new ExtractFromHereOp($c, 'set', 'stickerSet', 'access_hash'),
+                            'hash' => new LiteralOp(0),
+                        ],
+                    ),
+                ]
+            );
+        }
         return;
     }
     if ($type === 'messages.StickerSet') {
