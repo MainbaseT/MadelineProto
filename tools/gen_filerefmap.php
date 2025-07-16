@@ -406,10 +406,6 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         );
         return;
     }
-    if ($type === 'BotInlineResult') {
-        // Ignore ephemeral inline results
-        return;
-    }
     if ($type === 'UserFull') {
         $locations[$type] = new CallOp(
             'users.getFullUser',
@@ -452,9 +448,6 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 )),
             ]
         );
-        return;
-    }
-    if ($type === 'StarGift') {
         return;
     }
     if ($type === 'AttachMenuBot') {
@@ -555,29 +548,11 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         }
         return;
     }
-    if ($type === 'photos.Photos' || $type === 'photos.Photo') {
-        // TODO: implement manually
-        return;
-    }
     if ($type === 'RecentMeUrl') {
         $locations['recentMeUrlChatInvite'] = new CallOp(
             'messages.checkChatInvite',
             ['hash' => new ExtractFromHereOp('recentMeUrlChatInvite', 'url')],
         );
-        return;
-    }
-    if ($type === 'payments.ResaleStarGifts' || $type === 'payments.StarGiftUpgradePreview') {
-        // Ignore for now
-        return;
-    }
-    if (in_array($type, [
-        // Extract from document attributes
-        'messages.FoundStickers',
-        'messages.Stickers',
-        'messages.RecentStickers',
-        'messages.FavedStickers',
-    ], true)) {
-        // TODO!
         return;
     }
     if ($type === 'messages.AvailableEffects') {
@@ -594,6 +569,33 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         );
         return;
     }
+
+    if ($type === 'payments.ResaleStarGifts' || $type === 'payments.StarGiftUpgradePreview') {
+        // Ignore for now
+        return;
+    }
+    if ($type === 'photos.Photos' || $type === 'photos.Photo') {
+        // TODO: implement manually
+        return;
+    }
+    if ($type === 'StarGift') {
+        return;
+    }
+    if ($type === 'BotInlineResult') {
+        // Ignore ephemeral inline results
+        return;
+    }
+    if (in_array($type, [
+        // Extract from document attributes
+        'messages.FoundStickers',
+        'messages.Stickers',
+        'messages.RecentStickers',
+        'messages.FavedStickers',
+    ], true)) {
+        // TODO!
+        return;
+    }
+
     $pos = count($stack);
     $found = false;
     foreach ([...$TL->getConstructors()->by_id, ...$TL->getMethods()->by_id] as $constructor) {
