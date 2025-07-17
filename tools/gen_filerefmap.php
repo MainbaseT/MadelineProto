@@ -444,7 +444,7 @@ final class ConstructorOp implements Op
     }
 }
 
-$recurse = static function (string $type, array $stack = []) use ($TL, &$recurse, &$final, &$locations): void {
+$populateFileRefContext = static function (string $type) use ($TL, &$locations): bool {
     if ($type === 'Message') {
         foreach (TLContext::getConstructorsOfType($TL, $type) as $constructor => $_) {
             if ($constructor === 'messageEmpty') {
@@ -455,11 +455,11 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 new ExtractFromHereOp([$constructor, 'id']),
             );
         }
-        return;
+        return true;
     }
     if ($type === 'WebPage') {
         $locations['webPage'] = CallOp::simple('messages.getWebPage', 'webPage', ['url' => 'url', 'hash' => new LiteralOp('int', 0)]);
-        return;
+        return true;
     }
     if ($type === 'BotApp') {
         $locations['botApp'] = CallOp::simple('messages.getBotApp', 'botApp', [
@@ -472,25 +472,25 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
             ),
             'hash' => new LiteralOp('long', 0),
         ]);
-        return;
+        return true;
     }
     if ($type === 'BotInfo') {
         $locations['botInfo'] = new CallOp(
             'users.getFullUser',
             ['id' => new GetInputUserOp(new ExtractFromHereOp(['botInfo', 'user_id'], true))],
         );
-        return;
+        return true;
     }
     if ($type === 'StoryItem') {
         $locations['storyItem'] = new CallOp('stories.getStoriesByID', [
             'id' => new ArrayOp(new ExtractFromHereOp(['storyItem', 'id'])),
             'peer' => new GetInputPeerOp(new ExtractFromHereOp(['storyItem', 'from_id'], true)),
         ]);
-        return;
+        return true;
     }
     if ($type === 'messages.SponsoredMessages') {
         $locations['messages.getSponsoredMessages'] = new CopyMethodCallOp('messages.getSponsoredMessages');
-        return;
+        return true;
     }
     if ($type === 'ChannelAdminLogEvent') {
         $locations['channelAdminLogEvent'] = new CallOp(
@@ -504,11 +504,11 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'flags' => new LiteralOp('#', 0),
             ]
         );
-        return;
+        return true;
     }
     if ($type === 'bots.PreviewInfo') {
         $locations['bots.getPreviewInfo'] = new CopyMethodCallOp('messages.getSponsoredMessages');
-        return;
+        return true;
     }
     if ($type === 'MessageExtendedMedia') {
         $locations['updateMessageExtendedMedia'] = new CallOp(
@@ -518,7 +518,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'peer' => new GetInputPeerOp(new ExtractFromHereOp(['updateMessageExtendedMedia', 'peer'])),
             ]
         );
-        return;
+        return true;
     }
     if ($type === 'UserFull') {
         $locations['userFull'] = new CallOp(
@@ -527,7 +527,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'id' => new GetInputUserOp(new ExtractFromHereOp(['userFull', 'id'])),
             ]
         );
-        return;
+        return true;
     }
     if ($type === 'ChatFull') {
         $locations['chatFull'] = new CallOp(
@@ -542,11 +542,11 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'channel' => new GetInputChannelOp(new ExtractFromHereOp(['channelFull', 'id'])),
             ]
         );
-        return;
+        return true;
     }
     if ($type === 'help.PremiumPromo') {
         $locations['help.getPremiumPromo'] = new CopyMethodCallOp('messages.getSponsoredMessages');
-        return;
+        return true;
     }
     if ($type === 'StarsTransaction') {
         foreach (TLContext::getConstructorsOfType($TL, $type) as $constructor => $isConstructor) {
@@ -567,14 +567,14 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 ]
             );
         }
-        return;
+        return true;
     }
     if ($type === 'AttachMenuBot') {
         $locations['attachMenuBot'] = new CallOp(
             'messages.getAttachMenuBot',
             ['bot' => new GetInputUserOp(new ExtractFromHereOp(['attachMenuBot', 'bot_id']))]
         );
-        return;
+        return true;
     }
     if ($type === 'Theme') {
         $locations['theme'] = new CallOp(
@@ -590,7 +590,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'format' => new ThemeFormatOp(),
             ]
         );
-        return;
+        return true;
     }
     if ($type === 'WallPaper') {
         $locations['wallPaper'] = new CallOp(
@@ -605,7 +605,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 ),
             ]
         );
-        return;
+        return true;
     }
 
     // Multiple variations to handle references from covers in StickerSetCovered and messages.StickerSet
@@ -623,7 +623,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'hash' => new LiteralOp('int', 0),
             ]
         );
-        return;
+        return true;
     }
     if ($type === 'StickerSetCovered') {
         foreach (['stickerSetMultiCovered', 'stickerSetFullCovered'] as $c) {
@@ -641,7 +641,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 ]
             );
         }
-        return;
+        return true;
     }
     if ($type === 'messages.StickerSet') {
         $locations['messages.stickerSet'] = new CallOp(
@@ -657,47 +657,47 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'hash' => new LiteralOp('int', 0),
             ]
         );
-        return;
+        return true;
     }
     if ($type === 'messages.SavedGifs') {
         $locations['messages.savedGifs'] = new CallOp('messages.getSavedGifs', ['hash' => new LiteralOp('long', 0)]);
-        return;
+        return true;
     }
     if ($type === 'account.SavedRingtones' || $type === 'account.SavedRingtone') {
         foreach (['account.savedRingtones', 'account.savedRingtoneConverted', 'account.uploadRingtone'] as $c) {
             $locations[$c] = new CallOp('account.getSavedRingtones', ['hash' => new LiteralOp('long', 0)]);
         }
-        return;
+        return true;
     }
     if ($type === 'RecentMeUrl') {
         $locations['recentMeUrlChatInvite'] = new CallOp(
             'messages.checkChatInvite',
             ['hash' => new ExtractFromHereOp(['recentMeUrlChatInvite', 'url'])],
         );
-        return;
+        return true;
     }
     if ($type === 'messages.AvailableEffects') {
         $locations['messages.availableEffects'] = new CallOp(
             'messages.getAvailableEffects',
             ['hash' => new LiteralOp('int', 0)],
         );
-        return;
+        return true;
     }
     if ($type === 'messages.AvailableReactions') {
         $locations['messages.availableReactions'] = new CallOp(
             'messages.getAvailableReactions',
             ['hash' => new LiteralOp('int', 0)],
         );
-        return;
+        return true;
     }
 
     if ($type === 'payments.ResaleStarGifts' || $type === 'payments.StarGiftUpgradePreview' || $type === 'StarGift') {
         // Ignore for now
-        return;
+        return true;
     }
     if ($type === 'BotInlineResult') {
         // Ignore ephemeral inline results
-        return;
+        return true;
     }
     if ($type === 'photos.Photos' || $type === 'photos.Photo') {
         $locations['photo'] = new CallOp(
@@ -710,7 +710,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
             ]
         );
         // TODO: implement manually
-        return;
+        return true;
     }
     if (in_array($type, [
         // Extract from document attributes
@@ -720,9 +720,15 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         'messages.FavedStickers',
     ], true)) {
         // TODO!
+        return true;
+    }
+    return false;
+};
+
+$recurse = static function (Closure $populator, string $type, array $stack = []) use ($TL, &$recurse, &$final, &$locations): void {
+    if ($populator($type)) {
         return;
     }
-
     $pos = count($stack);
     $found = false;
     foreach ([...$TL->getConstructors()->by_id, ...$TL->getMethods()->by_id] as $constructor) {
@@ -730,7 +736,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         foreach ($constructor['params'] as $param) {
             if ($param['type'] === $type && !in_array($name, $stack, true)) {
                 $stack[$pos] = $name;
-                $recurse($constructor['type'], $stack);
+                $recurse($populator, $constructor['type'], $stack);
                 $found = true;
             }
             if (isset($param['subtype'])
@@ -738,7 +744,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 && !in_array($name, $stack, true)
             ) {
                 $stack[$pos] = $name;
-                $recurse($constructor['type'], $stack);
+                $recurse($populator, $constructor['type'], $stack);
                 $found = true;
             }
         }
@@ -772,7 +778,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
 };
 
 foreach (['Document' => 'document', 'Photo' => 'photo'] as $type => $constructor) {
-    $recurse($type, [$constructor]);
+    $recurse($populateFileRefContext, $type, [$constructor]);
 }
 
 if ($final) {
