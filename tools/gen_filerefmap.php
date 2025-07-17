@@ -10,7 +10,6 @@ require 'vendor/autoload.php';
 $TL = new TL(null);
 $TL->init(new TLSchema);
 
-$final = [];
 $locations = [];
 
 final class TLContext
@@ -67,7 +66,8 @@ final class TLContext
         $hadFlag = false;
         do {
             if ($type !== null
-                && !isset(self::getConstructorsOfType($this->tl, $type)[$path[$idx]])
+                && !isset(self::getConstructorsOfType($this->tl, $type, true, true)[$path[$idx]])
+                && !isset(self::getConstructorsOfType($this->tl, $type, false, true)[$path[$idx]])
             ) {
                 throw new AssertionError("{$path[$idx]} is a constructor of type $type, path: " . json_encode($path));
             }
@@ -98,20 +98,26 @@ final class TLContext
 
         return $type;
     }
-    public static function getConstructorsOfType(TLInterface $tl, string $type): array
+    public static function getConstructorsOfType(TLInterface $tl, string $type, bool $methods, bool $ignoreEmpty = false): array
     {
         $constructors = [];
-        foreach ($tl->getConstructors()->by_id as $constructor) {
-            if ($constructor['type'] === $type) {
-                $constructors[$constructor['predicate']] = true;
+        if ($methods) {
+            foreach ($tl->getMethods()->by_id as $method) {
+                if ($method['type'] === $type) {
+                    $constructors[$method['method']] = false;
+                }
+            }
+        } else {
+            foreach ($tl->getConstructors()->by_id as $constructor) {
+                if ($constructor['type'] === $type) {
+                    $constructors[$constructor['predicate']] = true;
+                }
             }
         }
-        foreach ($tl->getMethods()->by_id as $method) {
-            if ($method['type'] === $type) {
-                $constructors[$method['method']] = false;
-            }
+        $methods = $methods ? 'methods' : 'constructors';
+        if (!$ignoreEmpty) {
+            Assert::notEmpty($constructors, "No {$methods} found for type: $type");
         }
-        Assert::notEmpty($constructors, "No constructors found for type: $type");
         return $constructors;
     }
 }
@@ -131,6 +137,18 @@ interface ExtractorOrLiteralOp extends SimpleExtractorOp {
 
 interface ActionOp extends Op
 {
+}
+
+final class Noop implements ActionOp {
+    public function getType(TLContext $tl): string
+    {
+        return '';
+    }
+
+    public function build(TLContext $tl): array
+    {
+        return ['op' => 'noop'];
+    }
 }
 
 final class CopyMethodCallOp implements ActionOp
@@ -500,7 +518,7 @@ final class ConstructorOp implements ExtractorOrLiteralOp
 
 $populateFileRefContext = static function (string $type) use ($TL, &$locations): bool {
     if ($type === 'Message') {
-        foreach (TLContext::getConstructorsOfType($TL, $type) as $constructor => $_) {
+        foreach (TLContext::getConstructorsOfType($TL, 'Message', false) as $constructor => $_) {
             if ($constructor === 'messageEmpty') {
                 continue;
             }
@@ -509,6 +527,7 @@ $populateFileRefContext = static function (string $type) use ($TL, &$locations):
                 new ExtractFromHereOp([$constructor, 'id']),
             );
         }
+        $locations['messageEmpty'][] = new Noop;
         return true;
     }
     if ($type === 'WebPage') {
@@ -603,7 +622,7 @@ $populateFileRefContext = static function (string $type) use ($TL, &$locations):
         return true;
     }
     if ($type === 'StarsTransaction') {
-        foreach (TLContext::getConstructorsOfType($TL, $type) as $constructor => $isConstructor) {
+        foreach (TLContext::getConstructorsOfType($TL, 'StarsTransaction', false) as $constructor => $isConstructor) {
             if ($isConstructor) {
                 continue;
             }
@@ -802,10 +821,10 @@ $populateFileRefContext = static function (string $type) use ($TL, &$locations):
         );
         return true;
     }
-    return false;
-};
+    if ($type === 'Document') {
+        $locations['messages.getDocumentByHash'] = new CopyMethodCallOp('messages.getDocumentByHash');
 
-$recurse = static function (Closure $populator, string $type, array $stack = []) use ($TL, &$recurse, &$final, &$locations): void {
+$recurse = static function (Closure $populator, Closure $onStackEnd, string $type, array $stack = []) use ($TL, &$recurse): void {
     if ($populator($type)) {
         return;
     }
@@ -816,7 +835,7 @@ $recurse = static function (Closure $populator, string $type, array $stack = [])
         foreach ($constructor['params'] as $param) {
             if ($param['type'] === $type && !in_array($name, $stack, true)) {
                 $stack[$pos] = $name;
-                $recurse($populator, $constructor['type'], $stack);
+                $recurse($populator, $onStackEnd, $constructor['type'], $stack);
                 $found = true;
             }
             if (isset($param['subtype'])
@@ -824,16 +843,21 @@ $recurse = static function (Closure $populator, string $type, array $stack = [])
                 && !in_array($name, $stack, true)
             ) {
                 $stack[$pos] = $name;
-                $recurse($populator, $constructor['type'], $stack);
+                $recurse($populator, $onStackEnd, $constructor['type'], $stack);
                 $found = true;
             }
         }
     }
-    if (!$found) {
+    unset($stack[$pos]);
+    if (!$found 
+        || $type === 'Update' 
+        || $type === 'Updates'
+        || TLContext::getConstructorsOfType($TL, $type, true, true)
+    ) {
         if (
             (
                 in_array($stack[0], ['photo', 'document'], true)
-                && $stack[1] === 'game'
+                && ($stack[1] ?? null) === 'game'
                 && in_array(end($stack), [
                     'messages.webPagePreview',
                     'payments.starsStatus',
@@ -853,18 +877,47 @@ $recurse = static function (Closure $populator, string $type, array $stack = [])
         ) {
             return;
         }
-        $final[json_encode($stack)]= $stack;
+        $onStackEnd($stack);
     }
 };
 
-foreach (['Document' => 'document', 'Photo' => 'photo'] as $type => $constructor) {
-    $recurse($populateFileRefContext, $type, [$constructor]);
+$fileRefs = ['Document' => 'document', 'Photo' => 'photo'];
+
+$leftover = [];
+
+foreach ($fileRefs as $type => $constructor) {
+    $recurse(
+        $populateFileRefContext,
+        function (array $stack) use (&$leftover): void {
+            $leftover[json_encode($stack)] = $stack;
+        },
+        $type,
+        [$constructor]
+    );
 }
 
-if ($final) {
+if ($leftover) {
     var_dump("Have leftover reference paths!");
-    var_dump(array_values($final));
+    var_dump(array_values($leftover));
+    var_dump("Have leftover reference paths!");
     die(1);
+}
+
+foreach ($fileRefs as $type => $constructor) {
+    $recurse(
+        static fn () => false,
+        function (array $stack) use ($TL, $locations): void {
+            $ok = true;
+            foreach ($stack as $constructor) {
+                $ok = $ok && isset($locations[$constructor]);
+            }
+            if (!$ok) {
+                throw new AssertionError("Uncovered path: " . json_encode($stack));
+            }
+        },
+        $type,
+        [$constructor]
+    );
 }
 
 foreach ($locations as $constructor => $ops) {
