@@ -21,14 +21,15 @@ final class TLContext
     ) {
     }
 
-    public function getTypeAtPosition(ExtractFromHereOp|ExtractFromMethodCallOp $path): string
+    public function getTypeAtPosition(ExtractFromHereOp|ExtractFromMethodCallOp $_path): string
     {
-        if ($path instanceof ExtractFromHereOp) {
-            Assert::eq($this->position, $path->path[0], "Current constructor {$this->position} does not match expected constructor {$path->path[0]}");
+        if ($_path instanceof ExtractFromHereOp) {
+            Assert::eq($this->position, $_path->path[0], "Current constructor {$this->position} does not match expected constructor {$_path->path[0]}");
         }
-        $path = $path->path;
+        $path = $_path->path;
         $idx = 0;
         $type = null;
+        $hadFlag = false;
         do {
             if ($type !== null
                 && !isset(self::getConstructorsOfType($this->tl, $type)[$path[$idx]])
@@ -43,16 +44,22 @@ final class TLContext
 
             $idx++;
             $type = null;
+            $n = $constructor['predicate'] ?? $constructor['method'];
             foreach ($constructor['params'] as $param) {
                 if ($param['name'] === $path[$idx]) {
-                    Assert::false(isset($param['subtype']));
+                    Assert::false(isset($param['subtype']), "Got flag for parameter {$path[$idx]} in constructor or method $n");
+                    $hadFlag = $hadFlag || isset($param['pow']);
                     $type = $param['type'];
                     break;
                 }
             }
-            $n = $constructor['predicate'] ?? $constructor['method'];
             Assert::notNull($type, "Parameter {$path[$idx]} not found in constructor or method $n: " . json_encode($path));
         } while (++$idx < count($path));
+        if ($_path->isFlag != $hadFlag) {
+            $hadFlag = $hadFlag ? 'flag' : 'no flag';
+            $expectedFlag = $_path->isFlag ? 'flag' : 'no flag';
+            throw new AssertionError("Expected $expectedFlag; got $hadFlag at " . json_encode($path));
+        }
 
         return $type;
     }
@@ -102,11 +109,11 @@ final class ThemeFormatOp implements Op
 }
 final class ExtractFromHereOp implements Op
 {
-    /** @var string[] */
-    public readonly array $path;
-    public function __construct(string ...$path)
-    {
-        $this->path = $path;
+    public function __construct(
+        /** @var string[] */
+        public readonly array $path,
+        public readonly bool $isFlag = false,
+    ) {
     }
 
     public function extend(string ...$path): self
@@ -118,7 +125,7 @@ final class ExtractFromHereOp implements Op
     {
         $tl->getTypeAtPosition($this);
         return [
-            'op' => 'extractFromHere',
+            'op' => $this->isFlag ? 'extractFromHereIfFlagsAreSet' : 'extractFromHere',
             'path' => $this->path,
         ];
     }
@@ -128,6 +135,7 @@ final class ExtractFromMethodCallOp implements Op
 {
     /** @var string[] */
     public readonly array $path;
+    public bool $isFlag = false;
     public function __construct(string ...$path)
     {
         $this->path = $path;
@@ -142,7 +150,7 @@ final class ExtractFromMethodCallOp implements Op
     {
         $tl->getTypeAtPosition($this);
         return [
-            'op' => 'extractFromMethodCall',
+            'op' => $this->isFlag ? 'extractFromMethodCallIfFlagsAreSet' : 'extractFromMethodCall',
             'path' => $this->path,
         ];
     }
@@ -289,7 +297,7 @@ final class CallOp implements Op
         $final = [];
         foreach ($args as $from => $to) {
             if (!$to instanceof Op) {
-                $to = new ExtractFromHereOp($constructor, $to);
+                $to = new ExtractFromHereOp([$constructor, $to]);
             }
             $final[$from] = $to;
         }
@@ -339,8 +347,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 continue;
             }
             $locations[$constructor] = new GetMessageOp(
-                new ExtractFromHereOp($constructor, 'peer_id'),
-                new ExtractFromHereOp($constructor, 'id'),
+                new ExtractFromHereOp([$constructor, 'peer_id']),
+                new ExtractFromHereOp([$constructor, 'id']),
             );
         }
         return;
@@ -354,8 +362,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
             'app' => new ConstructorOp(
                 'inputBotAppID',
                 [
-                    'id' => new ExtractFromHereOp('botApp', 'id'),
-                    'access_hash' => new ExtractFromHereOp('botApp', 'access_hash'),
+                    'id' => new ExtractFromHereOp(['botApp', 'id']),
+                    'access_hash' => new ExtractFromHereOp(['botApp', 'access_hash']),
                 ]
             ),
             'hash' => new LiteralOp('long', 0),
@@ -365,14 +373,14 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
     if ($type === 'BotInfo') {
         $locations['botInfo'] = new CallOp(
             'users.getFullUser',
-            ['id' => new GetInputUserOp(new ExtractFromHereOp('botInfo', 'user_id'))],
+            ['id' => new GetInputUserOp(new ExtractFromHereOp(['botInfo', 'user_id'], true))],
         );
         return;
     }
     if ($type === 'StoryItem') {
         $locations['storyItem'] = new CallOp('stories.getStoriesByID', [
-            'id' => new ArrayOp(new ExtractFromHereOp('storyItem', 'id')),
-            'peer' => new GetInputPeerOp(new ExtractFromHereOp('storyItem', 'from_id')),
+            'id' => new ArrayOp(new ExtractFromHereOp(['storyItem', 'id'])),
+            'peer' => new GetInputPeerOp(new ExtractFromHereOp(['storyItem', 'from_id'], true)),
         ]);
         return;
     }
@@ -385,8 +393,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
             'channels.getAdminLog',
             [
                 'channel' => new GetInputChannelOp(new ExtractFromMethodCallOp('channels.getAdminLog', 'channel')),
-                'max_id' => new ExtractFromHereOp('channelAdminLogEvent', 'id'),
-                'min_id' => new ExtractFromHereOp('channelAdminLogEvent', 'id'),
+                'max_id' => new ExtractFromHereOp(['channelAdminLogEvent', 'id']),
+                'min_id' => new ExtractFromHereOp(['channelAdminLogEvent', 'id']),
                 'limit' => new LiteralOp('int', 1),
             ]
         );
@@ -400,8 +408,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         $locations['updateMessageExtendedMedia'] = new CallOp(
             'messages.getExtendedMedia',
             [
-                'id' => new ArrayOp(new ExtractFromHereOp('updateMessageExtendedMedia', 'msg_id')),
-                'peer' => new GetInputPeerOp(new ExtractFromHereOp('updateMessageExtendedMedia', 'peer')),
+                'id' => new ArrayOp(new ExtractFromHereOp(['updateMessageExtendedMedia', 'msg_id'])),
+                'peer' => new GetInputPeerOp(new ExtractFromHereOp(['updateMessageExtendedMedia', 'peer'])),
             ]
         );
         return;
@@ -410,7 +418,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         $locations['userFull'] = new CallOp(
             'users.getFullUser',
             [
-                'id' => new GetInputUserOp(new ExtractFromHereOp('userFull', 'id')),
+                'id' => new GetInputUserOp(new ExtractFromHereOp(['userFull', 'id'])),
             ]
         );
         return;
@@ -419,13 +427,13 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
         $locations['chatFull'] = new CallOp(
             'messages.getFullChat',
             [
-                'chat_id' => new ExtractFromHereOp('chatFull', 'id'),
+                'chat_id' => new ExtractFromHereOp(['chatFull', 'id']),
             ]
         );
         $locations['channelFull'] = new CallOp(
             'channels.getFullChannel',
             [
-                'channel' => new GetInputChannelOp(new ExtractFromHereOp('channelFull', 'id')),
+                'channel' => new GetInputChannelOp(new ExtractFromHereOp(['channelFull', 'id'])),
             ]
         );
         return;
@@ -446,8 +454,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                     'id' => new ConstructorOp(
                         'inputStarsTransaction',
                         [
-                            'id' => new ExtractFromHereOp($constructor, 'id'),
-                            'refund' => new ExtractFromHereOp($constructor, 'refund'),
+                            'id' => new ExtractFromHereOp([$constructor, 'id']),
+                            'refund' => new ExtractFromHereOp([$constructor, 'refund']),
                         ]
                     ),
                 ]
@@ -458,7 +466,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
     if ($type === 'AttachMenuBot') {
         $locations['attachMenuBot'] = new CallOp(
             'bots.getAttachMenuBot',
-            ['bot' => new GetInputUserOp(new ExtractFromHereOp('attachMenuBot', 'bot_id'))]
+            ['bot' => new GetInputUserOp(new ExtractFromHereOp(['attachMenuBot', 'bot_id']))]
         );
         return;
     }
@@ -469,8 +477,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'theme' => new ConstructorOp(
                     'inputTheme',
                     [
-                        'id' => new ExtractFromHereOp('theme', 'id'),
-                        'access_hash' => new ExtractFromHereOp('theme', 'access_hash'),
+                        'id' => new ExtractFromHereOp(['theme', 'id']),
+                        'access_hash' => new ExtractFromHereOp(['theme', 'access_hash']),
                     ]
                 ),
                 'format' => new ThemeFormatOp(),
@@ -485,8 +493,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'theme' => new ConstructorOp(
                     'inputWallPaper',
                     [
-                        'id' => new ExtractFromHereOp('wallPaper', 'id'),
-                        'access_hash' => new ExtractFromHereOp('wallPaper', 'access_hash'),
+                        'id' => new ExtractFromHereOp(['wallPaper', 'id']),
+                        'access_hash' => new ExtractFromHereOp(['wallPaper', 'access_hash']),
                     ]
                 ),
             ]
@@ -502,8 +510,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'stickerset' => new ConstructorOp(
                     'inputStickerSetID',
                     [
-                        'id' => new ExtractFromHereOp('stickerSet', 'id'),
-                        'access_hash' => new ExtractFromHereOp('stickerSet', 'access_hash'),
+                        'id' => new ExtractFromHereOp(['stickerSet', 'id']),
+                        'access_hash' => new ExtractFromHereOp(['stickerSet', 'access_hash']),
                         'hash' => new LiteralOp('long', 0),
                     ],
                 ),
@@ -519,8 +527,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                     'stickerset' => new ConstructorOp(
                         'inputStickerSetID',
                         [
-                            'id' => new ExtractFromHereOp($c, 'set', 'stickerSet', 'id'),
-                            'access_hash' => new ExtractFromHereOp($c, 'set', 'stickerSet', 'access_hash'),
+                            'id' => new ExtractFromHereOp([$c, 'set', 'stickerSet', 'id']),
+                            'access_hash' => new ExtractFromHereOp([$c, 'set', 'stickerSet', 'access_hash']),
                             'hash' => new LiteralOp('long', 0),
                         ],
                     ),
@@ -536,8 +544,8 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
                 'stickerset' => new ConstructorOp(
                     'inputStickerSetID',
                     [
-                        'id' => new ExtractFromHereOp('messages.stickerSet', 'set', 'stickerSet', 'id'),
-                        'access_hash' => new ExtractFromHereOp('messages.stickerSet', 'set', 'stickerSet', 'access_hash'),
+                        'id' => new ExtractFromHereOp(['messages.stickerSet', 'set', 'stickerSet', 'id']),
+                        'access_hash' => new ExtractFromHereOp(['messages.stickerSet', 'set', 'stickerSet', 'access_hash']),
                         'hash' => new LiteralOp('long', 0),
                     ],
                 ),
@@ -558,7 +566,7 @@ $recurse = static function (string $type, array $stack = []) use ($TL, &$recurse
     if ($type === 'RecentMeUrl') {
         $locations['recentMeUrlChatInvite'] = new CallOp(
             'messages.checkChatInvite',
-            ['hash' => new ExtractFromHereOp('recentMeUrlChatInvite', 'url')],
+            ['hash' => new ExtractFromHereOp(['recentMeUrlChatInvite', 'url'])],
         );
         return;
     }
@@ -660,5 +668,5 @@ if ($final) {
 
 foreach ($locations as $constructor => $op) {
     var_dump("Processing $constructor");
-    var_dump([$constructor, $op->build(new TLContext($TL, $constructor))]);
+    ([$constructor, $op->build(new TLContext($TL, $constructor))]);
 }
