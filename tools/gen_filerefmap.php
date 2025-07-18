@@ -6,13 +6,13 @@ use danog\MadelineProto\FileRefExtractor\Ops\ConstructorOp;
 use danog\MadelineProto\FileRefExtractor\Ops\CopyMethodCallOp;
 use danog\MadelineProto\FileRefExtractor\Ops\ExtractFromHereOp;
 use danog\MadelineProto\FileRefExtractor\Ops\ExtractFromMethodCallOp;
-use danog\MadelineProto\FileRefExtractor\Ops\ExtractStickerSetFromDocumentAttributesOp;
 use danog\MadelineProto\FileRefExtractor\Ops\GetInputChannelOp;
 use danog\MadelineProto\FileRefExtractor\Ops\GetInputPeerOp;
 use danog\MadelineProto\FileRefExtractor\Ops\GetInputUserOp;
 use danog\MadelineProto\FileRefExtractor\Ops\GetMessageOp;
-use danog\MadelineProto\FileRefExtractor\Ops\LiteralOp;
+use danog\MadelineProto\FileRefExtractor\Ops\GetStickerSetFromDocumentAttributesOp;
 use danog\MadelineProto\FileRefExtractor\Ops\Noop;
+use danog\MadelineProto\FileRefExtractor\Ops\PrimitiveLiteralOp;
 use danog\MadelineProto\FileRefExtractor\Ops\ThemeFormatOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use danog\MadelineProto\FileRefExtractor\TLWrapper;
@@ -36,7 +36,7 @@ foreach ($TL->getConstructorsOfType('Message') as $constructor => $_) {
         new ExtractFromHereOp([$constructor, 'id']),
     );
 }
-$locations['webPage'][] = CallOp::simple('messages.getWebPage', 'webPage', ['url' => 'url', 'hash' => new LiteralOp('int', 0)]);
+$locations['webPage'][] = CallOp::simple('messages.getWebPage', 'webPage', ['url' => 'url', 'hash' => new PrimitiveLiteralOp('int', 0)]);
 $locations['botApp'][] = CallOp::simple('messages.getBotApp', 'botApp', [
     'app' => new ConstructorOp(
         'inputBotAppID',
@@ -45,7 +45,7 @@ $locations['botApp'][] = CallOp::simple('messages.getBotApp', 'botApp', [
             'access_hash' => new ExtractFromHereOp(['botApp', 'access_hash']),
         ]
     ),
-    'hash' => new LiteralOp('long', 0),
+    'hash' => new PrimitiveLiteralOp('long', 0),
 ]);
 $locations['botInfo'][] = new CallOp(
     'users.getFullUser',
@@ -62,8 +62,8 @@ $locations['channelAdminLogEvent'][] = new CallOp(
         'channel' => new GetInputChannelOp(new ExtractFromMethodCallOp(['channels.getAdminLog', 'channel'])),
         'max_id' => new ExtractFromHereOp(['channelAdminLogEvent', 'id']),
         'min_id' => new ExtractFromHereOp(['channelAdminLogEvent', 'id']),
-        'limit' => new LiteralOp('int', 1),
-        'q' => new LiteralOp('string', ''),
+        'limit' => new PrimitiveLiteralOp('int', 1),
+        'q' => new PrimitiveLiteralOp('string', ''),
     ]
 );
 $locations['bots.getPreviewMedias'][] = new CopyMethodCallOp('bots.getPreviewMedias');
@@ -161,7 +161,7 @@ foreach (['stickerSetMultiCovered', 'stickerSetFullCovered'] as $c) {
                     'access_hash' => new ExtractFromHereOp([$c, 'set', 'stickerSet', 'access_hash']),
                 ],
             ),
-            'hash' => new LiteralOp('int', 0),
+            'hash' => new PrimitiveLiteralOp('int', 0),
         ]
     );
 }
@@ -175,12 +175,12 @@ $locations['messages.stickerSet'][] = new CallOp(
                 'access_hash' => new ExtractFromHereOp(['messages.stickerSet', 'set', 'stickerSet', 'access_hash']),
             ],
         ),
-        'hash' => new LiteralOp('int', 0),
+        'hash' => new PrimitiveLiteralOp('int', 0),
     ]
 );
-$locations['messages.savedGifs'][] = new CallOp('messages.getSavedGifs', ['hash' => new LiteralOp('long', 0)]);
+$locations['messages.savedGifs'][] = new CallOp('messages.getSavedGifs', ['hash' => new PrimitiveLiteralOp('long', 0)]);
 foreach (['account.savedRingtones', 'account.savedRingtoneConverted', 'account.uploadRingtone'] as $c) {
-    $locations[$c][] = new CallOp('account.getSavedRingtones', ['hash' => new LiteralOp('long', 0)]);
+    $locations[$c][] = new CallOp('account.getSavedRingtones', ['hash' => new PrimitiveLiteralOp('long', 0)]);
 }
 
 $locations['recentMeUrlChatInvite'][] = new Noop('Do not store references based on chat invite links');
@@ -188,20 +188,20 @@ $locations['messages.checkChatInvite'][] = new Noop('Do not store references bas
 
 $locations['messages.availableEffects'][] = new CallOp(
     'messages.getAvailableEffects',
-    ['hash' => new LiteralOp('int', 0)],
+    ['hash' => new PrimitiveLiteralOp('int', 0)],
 );
 $locations['messages.availableReactions'][] = new CallOp(
     'messages.getAvailableReactions',
-    ['hash' => new LiteralOp('int', 0)],
+    ['hash' => new PrimitiveLiteralOp('int', 0)],
 );
 
 $locations['photo'][] = new CallOp(
     'photos.getUserPhotos',
     [
         'user_id' => new ExtractFromMethodCallOp(['photos.getUserPhotos', 'user_id']),
-        'offset' => new LiteralOp('int', -1),
+        'offset' => new PrimitiveLiteralOp('int', -1),
         'max_id' => new ExtractFromHereOp(['photo', 'id']),
-        'limit' => new LiteralOp('int', 1),
+        'limit' => new PrimitiveLiteralOp('int', 1),
     ]
 );
 foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) {
@@ -216,9 +216,9 @@ foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) 
                     []
                 )
             ),
-            'offset' => new LiteralOp('int', -1),
+            'offset' => new PrimitiveLiteralOp('int', -1),
             'max_id' => new ExtractFromHereOp(['photo', 'id']),
-            'limit' => new LiteralOp('int', 1),
+            'limit' => new PrimitiveLiteralOp('int', 1),
         ]
     );
 }
@@ -228,9 +228,9 @@ $locations['photo'][] = new CallOp(
         'user_id' => new ExtractFromMethodCallOp(
             ['photos.uploadContactProfilePhoto', 'user_id'],
         ),
-        'offset' => new LiteralOp('int', -1),
+        'offset' => new PrimitiveLiteralOp('int', -1),
         'max_id' => new ExtractFromHereOp(['photo', 'id']),
-        'limit' => new LiteralOp('int', 1),
+        'limit' => new PrimitiveLiteralOp('int', 1),
     ]
 );
 $locations['messages.getInlineBotResults'][]= new Noop('Inline bot results are ephemeral');
@@ -242,8 +242,8 @@ $locations['messages.uploadImportedMedia'][]= new Noop('A freshly uploaded media
 $locations['document'][] = new CallOp(
     'messages.getStickerSet',
     [
-        'stickerset' => new ExtractStickerSetFromDocumentAttributesOp(new ExtractFromHereOp(['document', 'attributes'])),
-        'hash' => new LiteralOp('int', 0),
+        'stickerset' => new GetStickerSetFromDocumentAttributesOp(new ExtractFromHereOp(['document', 'attributes'])),
+        'hash' => new PrimitiveLiteralOp('int', 0),
     ]
 );
 $locations['messages.getDocumentByHash'][] = new CopyMethodCallOp('messages.getDocumentByHash');
@@ -370,5 +370,4 @@ if ($diff) {
     throw new AssertionError("Leftover ops!");
 }
 
-var_dump($validated);
-var_dump("Finished recursive validation");
+var_dump("OK!");

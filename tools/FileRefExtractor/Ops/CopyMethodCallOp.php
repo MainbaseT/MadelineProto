@@ -18,7 +18,7 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\Op;
+use danog\MadelineProto\FileRefExtractor\ActionOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use Webmozart\Assert\Assert;
 
@@ -27,12 +27,8 @@ final readonly class CopyMethodCallOp implements ActionOp
     public function __construct(private readonly string $method)
     {
     }
-    public function hasBackreference(): bool
-    {
-        return false;
-    }
 
-    public function normalize(array $stack, string $current): ?Op
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
     {
         Assert::eq($current, $this->method);
         Assert::isEmpty($stack);

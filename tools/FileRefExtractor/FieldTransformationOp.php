@@ -16,38 +16,8 @@ declare(strict_types=1);
  * @link https://docs.madelineproto.xyz MadelineProto documentation
  */
 
-namespace danog\MadelineProto\FileRefExtractor\Ops;
+namespace danog\MadelineProto\FileRefExtractor;
 
-use danog\MadelineProto\FileRefExtractor\Op;
-use danog\MadelineProto\FileRefExtractor\TLContext;
-use Webmozart\Assert\Assert;
-
-final readonly class LiteralOp implements ExtractorOrLiteralOp
+interface FieldTransformationOp extends TypedOp
 {
-    public function __construct(private readonly string $type, private readonly mixed $value)
-    {
-        Assert::inArray($type, ['int', 'long', 'string', 'bool', 'float'], "Invalid type '$type' for LiteralOp");
-    }
-
-    public function hasBackreference(): bool
-    {
-        return false;
-    }
-    public function normalize(array $stack, string $current): ?Op
-    {
-        return $this;
-    }
-    public function getType(TLContext $tl): string
-    {
-        return $this->type;
-    }
-
-    public function build(TLContext $tl): array
-    {
-        return [
-            'op' => 'literal',
-            'type' => $this->type,
-            'value' => $this->value,
-        ];
-    }
 }

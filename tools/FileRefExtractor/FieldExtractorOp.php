@@ -16,29 +16,8 @@ declare(strict_types=1);
  * @link https://docs.madelineproto.xyz MadelineProto documentation
  */
 
-namespace danog\MadelineProto\FileRefExtractor\Ops;
+namespace danog\MadelineProto\FileRefExtractor;
 
-use danog\MadelineProto\FileRefExtractor\ActionOp;
-use danog\MadelineProto\FileRefExtractor\TLContext;
-
-final readonly class Noop implements ActionOp
+interface FieldExtractorOp extends TypedOp
 {
-    public function __construct(private readonly string $why)
-    {
-    }
-
-    public function getType(TLContext $tl): string
-    {
-        return '';
-    }
-
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
-    {
-        return $this;
-    }
-
-    public function build(TLContext $tl): array
-    {
-        return ['op' => 'noop', 'why' => $this->why];
-    }
 }

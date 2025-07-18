@@ -18,17 +18,18 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\Op;
+use danog\MadelineProto\FileRefExtractor\FieldExtractorOp;
+use danog\MadelineProto\FileRefExtractor\FieldTransformationOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use Webmozart\Assert\Assert;
 
-final readonly class GetInputChannelOp implements ExtractorOrLiteralOp
+final readonly class GetInputChannelOp implements FieldTransformationOp
 {
-    public function __construct(private readonly SimpleExtractorOp $path)
+    public function __construct(private readonly FieldExtractorOp $path)
     {
     }
 
-    public function normalize(array $stack, string $current): ?Op
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
     {
         $path = $this->path->normalize($stack, $current);
         if ($path === null) {
@@ -38,10 +39,6 @@ final readonly class GetInputChannelOp implements ExtractorOrLiteralOp
             return new self($path);
         }
         return $this;
-    }
-    public function hasBackreference(): bool
-    {
-        return $this->path->hasBackreference();
     }
     public function getType(TLContext $tl): string
     {

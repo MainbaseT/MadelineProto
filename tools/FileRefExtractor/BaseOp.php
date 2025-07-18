@@ -16,10 +16,11 @@ declare(strict_types=1);
  * @link https://docs.madelineproto.xyz MadelineProto documentation
  */
 
-namespace danog\MadelineProto\FileRefExtractor\Ops;
+namespace danog\MadelineProto\FileRefExtractor;
 
-use danog\MadelineProto\FileRefExtractor\Op;
-
-interface ActionOp extends Op
+interface BaseOp
 {
+    public function build(TLContext $tl): array;
+
+    public function normalize(array $stack, string $current): ?BaseOp;
 }

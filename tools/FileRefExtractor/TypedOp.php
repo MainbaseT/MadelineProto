@@ -16,10 +16,9 @@ declare(strict_types=1);
  * @link https://docs.madelineproto.xyz MadelineProto documentation
  */
 
-namespace danog\MadelineProto\FileRefExtractor\Ops;
+namespace danog\MadelineProto\FileRefExtractor;
 
-use danog\MadelineProto\FileRefExtractor\Op;
-
-interface SimpleExtractorOp extends Op
+interface TypedOp extends BaseOp
 {
+    public function getType(TLContext $tl): string;
 }

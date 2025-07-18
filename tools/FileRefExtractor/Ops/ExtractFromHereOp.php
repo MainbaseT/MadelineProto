@@ -18,32 +18,25 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\Op;
+use danog\MadelineProto\FileRefExtractor\FieldExtractorOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
+use danog\MadelineProto\FileRefExtractor\TypedOp;
 use Webmozart\Assert\Assert;
 
-final readonly class ExtractFromHereOp implements SimpleExtractorOp
+final readonly class ExtractFromHereOp implements FieldExtractorOp
 {
     public function __construct(
         /** @var string[] */
         public readonly array $path,
         public readonly bool $isFlag = false,
-        public readonly ?Op $ifEmptyFlag = null,
+        public readonly ?TypedOp $ifEmptyFlag = null,
     ) {
         if ($ifEmptyFlag !== null) {
             Assert::true($isFlag);
         }
     }
 
-    public function hasBackreference(): bool
-    {
-        if ($this->ifEmptyFlag?->hasBackreference()) {
-            return true;
-        }
-        return false;
-    }
-
-    public function normalize(array $stack, string $current): ?Op
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
     {
         $if = $this->ifEmptyFlag?->normalize($stack, $current);
         if ($if === null && $this->ifEmptyFlag !== null) {

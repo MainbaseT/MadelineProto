@@ -18,19 +18,21 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\Op;
 use danog\MadelineProto\FileRefExtractor\TLContext;
+use danog\MadelineProto\FileRefExtractor\TypedOp;
+use Webmozart\Assert\Assert;
 
-final readonly class ConstructorOp implements ExtractorOrLiteralOp
+final readonly class ConstructorOp implements TypedOp
 {
-    /** @param Op[] $args */
+    /** @param TypedOp[] $args */
     public function __construct(
         private readonly string $constructor,
         private readonly array $args
     ) {
+        Assert::allIsInstanceOf($args, TypedOp::class);
     }
 
-    public function normalize(array $stack, string $current): ?Op
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
     {
         $final = [];
         $isDifferent = false;
@@ -49,16 +51,6 @@ final readonly class ConstructorOp implements ExtractorOrLiteralOp
         }
         return $this;
     }
-    public function hasBackreference(): bool
-    {
-        foreach ($this->args as $arg) {
-            if ($arg->hasBackreference()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public function getType(TLContext $tl): string
     {
         return $tl->tl->tl->getConstructors()->findByPredicate($this->constructor)['type'];

@@ -18,45 +18,32 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\Op;
+use danog\MadelineProto\FileRefExtractor\LiteralOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use Webmozart\Assert\Assert;
 
-final readonly class ExtractStickerSetFromDocumentAttributesOp implements SimpleExtractorOp
+final readonly class PrimitiveLiteralOp implements LiteralOp
 {
-    public function __construct(
-        private readonly SimpleExtractorOp $path,
-    ) {
+    public function __construct(private readonly string $type, private readonly mixed $value)
+    {
+        Assert::inArray($type, ['int', 'long', 'string', 'bool', 'float'], "Invalid type '$type' for LiteralOp");
     }
 
-    public function hasBackreference(): bool
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
     {
-        return $this->path->hasBackreference();
-    }
-
-    public function normalize(array $stack, string $current): ?Op
-    {
-        $path = $this->path->normalize($stack, $current);
-        if ($path === null) {
-            return null;
-        }
-        if ($path !== $this->path) {
-            return new self($path);
-        }
         return $this;
     }
-
     public function getType(TLContext $tl): string
     {
-        return 'InputStickerSet';
+        return $this->type;
     }
 
     public function build(TLContext $tl): array
     {
-        Assert::eq($this->path->getType($tl), 'Vector<DocumentAttribute>');
         return [
-            'op' => 'extractStickerSetFromDocumentAttributes',
-            'from' => $this->path->build($tl),
+            'op' => 'literal',
+            'type' => $this->type,
+            'value' => $this->value,
         ];
     }
 }

@@ -18,27 +18,22 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\Op;
+use danog\MadelineProto\FileRefExtractor\ActionOp;
+use danog\MadelineProto\FileRefExtractor\BaseOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
+use danog\MadelineProto\FileRefExtractor\TypedOp;
+use Webmozart\Assert\Assert;
 
 final readonly class CallOp implements ActionOp
 {
-    /** @param Op[] $args */
+    /** @param TypedOp[] $args */
     public function __construct(
         private readonly string $method,
         private readonly array $args
     ) {
+        Assert::allIsInstanceOf($args, TypedOp::class);
     }
-    public function hasBackreference(): bool
-    {
-        foreach ($this->args as $arg) {
-            if ($arg->hasBackreference()) {
-                return true;
-            }
-        }
-        return false;
-    }
-    public function normalize(array $stack, string $current): ?Op
+    public function normalize(array $stack, string $current): ?BaseOp
     {
         $final = [];
         $isDifferent = false;
@@ -57,16 +52,12 @@ final readonly class CallOp implements ActionOp
         }
         return $this;
     }
-    public function getType(TLContext $tl): string
-    {
-        return $tl->tl->getMethods()->findByMethod($this->method)['type'];
-    }
 
     public static function simple(string $method, string $constructor, array $args): self
     {
         $final = [];
         foreach ($args as $from => $to) {
-            if (!$to instanceof Op) {
+            if (!$to instanceof TypedOp) {
                 $to = new ExtractFromHereOp([$constructor, $to]);
             }
             $final[$from] = $to;

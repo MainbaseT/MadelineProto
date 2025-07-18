@@ -18,27 +18,18 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\Op;
 use danog\MadelineProto\FileRefExtractor\TLContext;
+use danog\MadelineProto\FileRefExtractor\TypedOp;
 
-final readonly class ArrayOp implements ExtractorOrLiteralOp
+final readonly class ArrayOp implements TypedOp
 {
-    /** @var Op[] */
+    /** @var TypedOp[] */
     private readonly array $values;
-    public function __construct(Op ...$values)
+    public function __construct(TypedOp ...$values)
     {
         $this->values = $values;
     }
-    public function hasBackreference(): bool
-    {
-        foreach ($this->values as $value) {
-            if ($value->hasBackreference()) {
-                return true;
-            }
-        }
-        return false;
-    }
-    public function normalize(array $stack, string $current): ?Op
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
     {
         $final = [];
         $isDifferent = false;

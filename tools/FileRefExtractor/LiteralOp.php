@@ -16,8 +16,8 @@ declare(strict_types=1);
  * @link https://docs.madelineproto.xyz MadelineProto documentation
  */
 
-namespace danog\MadelineProto\FileRefExtractor\Ops;
+namespace danog\MadelineProto\FileRefExtractor;
 
-interface ExtractorOrLiteralOp extends SimpleExtractorOp
+interface LiteralOp extends TypedOp
 {
 }

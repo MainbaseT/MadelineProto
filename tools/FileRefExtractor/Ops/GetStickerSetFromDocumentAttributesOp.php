@@ -18,27 +18,41 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\ActionOp;
+use danog\MadelineProto\FileRefExtractor\FieldExtractorOp;
+use danog\MadelineProto\FileRefExtractor\FieldTransformationOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
+use Webmozart\Assert\Assert;
 
-final readonly class Noop implements ActionOp
+final readonly class GetStickerSetFromDocumentAttributesOp implements FieldTransformationOp
 {
-    public function __construct(private readonly string $why)
-    {
-    }
-
-    public function getType(TLContext $tl): string
-    {
-        return '';
+    public function __construct(
+        private readonly FieldExtractorOp $path,
+    ) {
     }
 
     public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
     {
+        $path = $this->path->normalize($stack, $current);
+        if ($path === null) {
+            return null;
+        }
+        if ($path !== $this->path) {
+            return new self($path);
+        }
         return $this;
+    }
+
+    public function getType(TLContext $tl): string
+    {
+        return 'InputStickerSet';
     }
 
     public function build(TLContext $tl): array
     {
-        return ['op' => 'noop', 'why' => $this->why];
+        Assert::eq($this->path->getType($tl), 'Vector<DocumentAttribute>');
+        return [
+            'op' => 'extractStickerSetFromDocumentAttributes',
+            'from' => $this->path->build($tl),
+        ];
     }
 }

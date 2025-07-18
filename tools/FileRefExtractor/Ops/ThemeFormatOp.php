@@ -18,20 +18,16 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\Op;
+use danog\MadelineProto\FileRefExtractor\LiteralOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 
-final readonly class ThemeFormatOp implements ExtractorOrLiteralOp
+final readonly class ThemeFormatOp implements LiteralOp
 {
     public function __construct()
     {
     }
 
-    public function hasBackreference(): bool
-    {
-        return false;
-    }
-    public function normalize(array $stack, string $current): ?Op
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
     {
         return $this;
     }

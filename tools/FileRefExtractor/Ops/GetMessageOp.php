@@ -18,18 +18,19 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\Op;
+use danog\MadelineProto\FileRefExtractor\FieldExtractorOp;
+use danog\MadelineProto\FileRefExtractor\FieldTransformationOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use Webmozart\Assert\Assert;
 
-final readonly class GetMessageOp implements ActionOp
+final readonly class GetMessageOp implements FieldTransformationOp
 {
     public function __construct(
-        private readonly Op $peer,
-        private readonly Op $id,
+        private readonly FieldExtractorOp $peer,
+        private readonly FieldExtractorOp $id,
     ) {
     }
-    public function normalize(array $stack, string $current): ?Op
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
     {
         $peer = $this->peer->normalize($stack, $current);
         if ($peer === null) {
@@ -43,10 +44,6 @@ final readonly class GetMessageOp implements ActionOp
             return new self($peer, $id);
         }
         return $this;
-    }
-    public function hasBackreference(): bool
-    {
-        return $this->peer->hasBackreference() || $this->id->hasBackreference();
     }
     public function getType(TLContext $tl): string
     {

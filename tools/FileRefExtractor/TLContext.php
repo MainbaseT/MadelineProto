@@ -20,7 +20,6 @@ namespace danog\MadelineProto\FileRefExtractor;
 
 use AssertionError;
 use danog\MadelineProto\FileRefExtractor\Ops\ExtractFromHereOp;
-use danog\MadelineProto\FileRefExtractor\Ops\SimpleExtractorOp;
 use Webmozart\Assert\Assert;
 
 final readonly class TLContext
@@ -67,7 +66,7 @@ final readonly class TLContext
         }
     }
 
-    public function getTypeAtPosition(SimpleExtractorOp $_path): string
+    public function getTypeAtPosition(FieldExtractorOp $_path): string
     {
         if ($_path instanceof ExtractFromHereOp) {
             Assert::eq($this->position, $_path->path[0], "getTypeAtPosition: Current constructor {$this->position} does not match expected constructor {$_path->path[0]}");

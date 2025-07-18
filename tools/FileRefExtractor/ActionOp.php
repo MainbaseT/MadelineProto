@@ -18,13 +18,6 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor;
 
-interface Op
+interface ActionOp extends BaseOp
 {
-    public function build(TLContext $tl): array;
-
-    public function getType(TLContext $tl): string;
-
-    public function hasBackreference(): bool;
-
-    public function normalize(array $stack, string $current): ?Op;
 }
