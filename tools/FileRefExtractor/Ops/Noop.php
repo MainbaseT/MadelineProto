@@ -27,11 +27,6 @@ final readonly class Noop implements ActionOp
     {
     }
 
-    public function getType(TLContext $tl): string
-    {
-        return '';
-    }
-
     public function normalize(array $stack, string $current): ?ActionOp
     {
         return $this;

@@ -22,4 +22,5 @@ interface TypedOp
 {
     public function build(TLContext $tl): array;
     public function normalize(array $stack, string $current): ?self;
+    public function getType(TLContext $tl): string;
 }

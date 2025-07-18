@@ -34,15 +34,11 @@ final readonly class CopyMethodCallOp implements ActionOp
         Assert::isEmpty($stack);
         return $this;
     }
-    public function getType(TLContext $tl): string
-    {
-        return $tl->tl->tl->getMethods()->findByMethod($this->method)['type'];
-    }
 
     public function build(TLContext $tl): array
     {
         Assert::eq($tl->position, $this->method, "Current constructor {$tl->position} does not match expected method {$this->method}");
-        $this->getType($tl); // Validate type
+        $tl->tl->tl->getMethods()->findByMethod($this->method)['type']; // Validate type
         return ['op' => 'copyMethodCall', 'method' => $this->method];
     }
 }
