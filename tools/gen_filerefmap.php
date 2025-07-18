@@ -310,10 +310,13 @@ $recurse = static function (Closure $onStackEnd, string $type, array &$stack, ar
 $fileRefs = ['Document' => 'document', 'Photo' => 'photo'];
 
 foreach ($locations as $constructor => $ops) {
-    foreach ($ops as $op) {
-        $op->build(new TLContext($TL, $constructor));
+    foreach ($ops as $idx => $op) {
+        $op->build(new TLContext($TL, "{$constructor}_$idx", $constructor));
     }
 }
+
+$builtPre = $TL->actionsPre;
+$builtPost = $TL->actionsPost;
 
 $validated = [];
 
@@ -338,7 +341,7 @@ foreach ($fileRefs as $type => $constructor) {
                             continue;
                         }
                         $had = true;
-                        $normalized->build(new TLContext($TL, $top, true));
+                        $normalized->build(new TLContext($TL, $top, $top, true));
                         $validated[$constructor][spl_object_id($op)] = $op;
                     }
                 }
@@ -370,5 +373,6 @@ if ($diff) {
     throw new AssertionError("Leftover ops!");
 }
 
-var_dump($locations);
+var_dump($builtPre);
+//var_dump($locations);
 var_dump("OK!");

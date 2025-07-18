@@ -26,7 +26,8 @@ final readonly class TLContext
 {
     public function __construct(
         public TLWrapper $tl,
-        public ?string $position = null,
+        public string $contextName,
+        public string $position,
         public bool $normalized = false,
     ) {
     }

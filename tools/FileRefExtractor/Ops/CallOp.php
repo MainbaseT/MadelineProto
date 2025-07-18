@@ -71,6 +71,37 @@ final readonly class CallOp implements ActionOp
         foreach ($this->args as $from => $to) {
             $final[$from] = $to->build($tl);
         }
+        $hasBackref = (bool) $tl->tl->backrefs;
+        if (!$hasBackref) {
+            $tl->tl->backrefs[$this->method] = true;
+        }
+
+        foreach ($tl->tl->backrefs as $cons => $_) {
+            $tl->tl->actionsPre[$cons] ??= [];
+            array_unshift($tl->tl->actionsPre[$cons], [
+                'op' => 'pushContext',
+                'ctx' => $tl->contextName,
+            ]);
+
+            $tl->tl->actionsPost[$cons] ??= [];
+            array_push($tl->tl->actionsPost[$cons], [
+                'op' => 'popAndProcessContext',
+                'ctx' => $tl->contextName,
+            ]);
+        }
+
+        if ($hasBackref) {
+            $tl->tl->actionsPost[$cons][] = [
+                'op' => 'processContext',
+                'ctx' => $tl->contextName,
+            ];
+            $tl->tl->actionsPost[$cons][] = [
+                'op' => 'deleteContextEntries',
+                'ctx' => $tl->contextName,
+                'entries' => array_keys($final),
+            ];
+        }
+
         return [
             'op' => 'call',
             'method' => $this->method,

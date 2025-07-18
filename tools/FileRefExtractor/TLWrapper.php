@@ -21,14 +21,19 @@ namespace danog\MadelineProto\FileRefExtractor;
 use danog\MadelineProto\TL\TLInterface;
 use Webmozart\Assert\Assert;
 
-final readonly class TLWrapper
+final class TLWrapper
 {
-    private array $constructorsOfType;
-    private array $methodsOfType;
+    private readonly array $constructorsOfType;
+    private readonly array $methodsOfType;
+
+    public array $actionsPre = [];
+    public array $actionsPost = [];
+    public array $backrefs = [];
+
     public function __construct(
         public readonly TLInterface $tl,
-        public ?string $position = null,
-        public bool $normalized = false,
+        public readonly ?string $position = null,
+        public readonly bool $normalized = false,
     ) {
         $constructorsOfType = [];
         $methodsOfType = [];

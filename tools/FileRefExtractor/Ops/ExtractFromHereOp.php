@@ -68,6 +68,7 @@ final readonly class ExtractFromHereOp implements FieldExtractorOp
     {
         // Validate
         $this->getType($tl);
+        
         return [
             'op' => 'extractFromHere',
             'isFlag' => $this->isFlag,
