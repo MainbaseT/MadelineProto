@@ -29,7 +29,7 @@ final readonly class ArrayOp implements TypedOp
     {
         $this->values = $values;
     }
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
         $final = [];
         $isDifferent = false;

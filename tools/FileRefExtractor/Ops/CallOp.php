@@ -19,7 +19,6 @@ declare(strict_types=1);
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
 use danog\MadelineProto\FileRefExtractor\ActionOp;
-use danog\MadelineProto\FileRefExtractor\BaseOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use danog\MadelineProto\FileRefExtractor\TypedOp;
 use Webmozart\Assert\Assert;
@@ -33,7 +32,7 @@ final readonly class CallOp implements ActionOp
     ) {
         Assert::allIsInstanceOf($args, TypedOp::class);
     }
-    public function normalize(array $stack, string $current): ?BaseOp
+    public function normalize(array $stack, string $current): ?ActionOp
     {
         $final = [];
         $isDifferent = false;

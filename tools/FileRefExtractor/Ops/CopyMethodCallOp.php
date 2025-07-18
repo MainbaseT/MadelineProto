@@ -28,7 +28,7 @@ final readonly class CopyMethodCallOp implements ActionOp
     {
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\ActionOp
     {
         Assert::eq($current, $this->method);
         Assert::isEmpty($stack);

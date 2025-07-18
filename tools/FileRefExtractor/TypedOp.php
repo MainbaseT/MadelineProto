@@ -18,7 +18,8 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor;
 
-interface TypedOp extends BaseOp
+interface TypedOp
 {
-    public function getType(TLContext $tl): string;
+    public function build(TLContext $tl): array;
+    public function normalize(array $stack, string $current): ?self;
 }

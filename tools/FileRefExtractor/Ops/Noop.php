@@ -32,7 +32,7 @@ final readonly class Noop implements ActionOp
         return '';
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
+    public function normalize(array $stack, string $current): ?ActionOp
     {
         return $this;
     }

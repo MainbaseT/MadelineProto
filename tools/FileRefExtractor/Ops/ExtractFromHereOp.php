@@ -36,7 +36,7 @@ final readonly class ExtractFromHereOp implements FieldExtractorOp
         }
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
         $if = $this->ifEmptyFlag?->normalize($stack, $current);
         if ($if === null && $this->ifEmptyFlag !== null) {

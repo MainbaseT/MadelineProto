@@ -30,7 +30,7 @@ final readonly class GetMessageOp implements FieldTransformationOp
         private readonly FieldExtractorOp $id,
     ) {
     }
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
         $peer = $this->peer->normalize($stack, $current);
         if ($peer === null) {

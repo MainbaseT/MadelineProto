@@ -36,7 +36,7 @@ final readonly class ExtractFromMethodCallOp implements FieldExtractorOp
         }
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\BaseOp
+    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
         if ($stack[0] !== $this->path[0]) {
             return null;
