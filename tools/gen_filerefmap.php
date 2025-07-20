@@ -35,12 +35,12 @@ foreach ($TL->getConstructorsOfType('Message') as $constructor => $_) {
     $locations[$constructor][] = new GetMessageOp(
         new ExtractFromHereOp([[$constructor, 'peer_id']]),
         new ExtractFromHereOp([[$constructor, 'id']]),
-        $constructor === 'message' ? new ExtractFromHereOp([[$constructor, 'from_scheduled', ExtractFromParentOp::FLAG_PASSTHROUGH]]) : null,
+        $constructor === 'message' ? new ExtractFromHereOp([[$constructor, 'from_scheduled', ExtractFromHereOp::FLAG_PASSTHROUGH]]) : null,
     );
 }
 
 $storyMethods = [];
-foreach (['stories.StoryViewsList', 'stories.Stories', 'stories.PeerStories', 'stories.StoryReactionsList'] as $t) {
+/*foreach (['stories.StoryViewsList', 'stories.Stories', 'stories.PeerStories', 'stories.StoryReactionsList'] as $t) {
     foreach ($TL->getMethodsOfType($t) as $method => $_) {
         $storyMethods[$method] = true;
         $locations['storyItem'][] = new CallOp(
@@ -51,12 +51,45 @@ foreach (['stories.StoryViewsList', 'stories.Stories', 'stories.PeerStories', 's
             ]
         );
     }
+}*/
+foreach (['stories.Stories'] as $t) {
+    foreach ($TL->getMethodsOfType($t) as $method => $_) {
+        $storyMethods[$method] = true;
+        $locations[$method][] = new CallOp(
+            'stories.getStoriesByID',
+            [
+                'id' => new ArrayOp(new ExtractFromHereOp([
+                    [$method, ''],
+                    ['stories.stories', 'stories', ExtractFromHereOp::FLAG_UNPACK_ARRAY],
+                    ['storyItem', 'id']
+                ])),
+                'peer' => new GetInputPeerOp(new ExtractFromHereOp([[$method, 'peer']])),
+            ]
+        );
+    }
 }
-$locations['storyItem'][] = new CallOp(
+
+
+$locations['storyViewPublicRepost'][] = new CallOp(
     'stories.getStoriesByID',
     [
-        'id' => new ArrayOp(new ExtractFromHereOp([['storyItem', 'id']])),
-        'peer' => new GetInputPeerOp(new ExtractFromParentOp([['peerStories', 'peer']])),
+        'id' => new ArrayOp(new ExtractFromHereOp([['storyViewPublicRepost', 'story'], ['storyItem', 'id']])),
+        'peer' => new GetInputPeerOp(new ExtractFromHereOp([['storyViewPublicRepost', 'peer_id']])),
+    ]
+);
+$locations['storyReactionPublicRepost'][] = new CallOp(
+    'stories.getStoriesByID',
+    [
+        'id' => new ArrayOp(new ExtractFromHereOp([['storyReactionPublicRepost', 'story'], ['storyItem', 'id']])),
+        'peer' => new GetInputPeerOp(new ExtractFromHereOp([['storyReactionPublicRepost', 'peer_id']])),
+    ]
+);
+
+$locations['peerStories'][] = new CallOp(
+    'stories.getStoriesByID',
+    [
+        'id' => new ArrayOp(new ExtractFromHereOp([['peerStories', 'stories', ExtractFromHereOp::FLAG_UNPACK_ARRAY], ['storyItem', 'id']])),
+        'peer' => new GetInputPeerOp(new ExtractFromHereOp([['peerStories', 'peer']])),
     ]
 );
 
@@ -91,7 +124,7 @@ $locations['storyItem'][] = new CallOp('stories.getStoriesByID', [
     'peer' => new GetInputPeerOp(new ExtractFromHereOp([['storyItem', 'from_id', ExtractFromHereOp::FLAG_IF_ABSENT_ABORT]])),
 ]);
 $locations['messages.getSponsoredMessages'][] = new CopyMethodCallOp('messages.getSponsoredMessages');
-$locations['channelAdminLogEvent'][] = new CallOp(
+/*$locations['channelAdminLogEvent'][] = new CallOp(
     'channels.getAdminLog',
     [
         'channel' => new GetInputChannelOp(new ExtractFromParentOp([['channels.getAdminLog', 'channel']])),
@@ -100,7 +133,27 @@ $locations['channelAdminLogEvent'][] = new CallOp(
         'limit' => new PrimitiveLiteralOp('int', 1),
         'q' => new PrimitiveLiteralOp('string', ''),
     ]
+);*/
+
+$locations['channels.getAdminLog'][] = new CallOp(
+    'channels.getAdminLog',
+    [
+        'channel' => new GetInputChannelOp(new ExtractFromHereOp([['channels.getAdminLog', 'channel']])),
+        'max_id' => new ExtractFromHereOp([
+            ['channels.getAdminLog', ''],
+            ['channels.adminLogResults', 'events', ExtractFromHereOp::FLAG_UNPACK_ARRAY],
+            ['channelAdminLogEvent', 'id']
+        ]),
+        'min_id' => new ExtractFromHereOp([
+            ['channels.getAdminLog', ''],
+            ['channels.adminLogResults', 'events', ExtractFromHereOp::FLAG_UNPACK_ARRAY],
+            ['channelAdminLogEvent', 'id']
+        ]),
+        'limit' => new PrimitiveLiteralOp('int', 1),
+        'q' => new PrimitiveLiteralOp('string', ''),
+    ]
 );
+
 $locations['bots.getPreviewMedias'][] = new CopyMethodCallOp('bots.getPreviewMedias');
 $locations['bots.getPreviewInfo'][] = new CopyMethodCallOp('bots.getPreviewInfo');
 $locations['bots.addPreviewMedia'][] = new CallOp('bots.getPreviewInfo', [
@@ -142,16 +195,38 @@ $locations['help.getPremiumPromo'][] = new CopyMethodCallOp('help.getPremiumProm
 $starMethods = [];
 foreach ($TL->getMethodsOfType('payments.StarsStatus') as $method => $_) {
     $starMethods[$method] = true;
-    $locations['starsTransaction'][] = new CallOp(
+    /*$locations['starsTransaction'][] = new CallOp(
         'payments.getStarsTransactionsByID',
         [
             'peer' => new ExtractFromParentOp([[$method, 'peer']]),
-            ...($method === 'payments.getStarsSubscriptions' ? [] : ['ton' => new ExtractFromParentOp([[$method, 'ton', ExtractFromParentOp::FLAG_PASSTHROUGH]])]),
+            ...($method === 'payments.getStarsSubscriptions' ? [] : ['ton' => new ExtractFromParentOp([[$method, 'ton', ExtractFromHereOp::FLAG_PASSTHROUGH]])]),
             'id' => new ArrayOp(new ConstructorOp(
                 'inputStarsTransaction',
                 [
                     'id' => new ExtractFromHereOp([['starsTransaction', 'id']]),
-                    'refund' => new ExtractFromHereOp([['starsTransaction', 'refund', ExtractFromParentOp::FLAG_PASSTHROUGH]]),
+                    'refund' => new ExtractFromHereOp([['starsTransaction', 'refund', ExtractFromHereOp::FLAG_PASSTHROUGH]]),
+                ]
+            )),
+        ]
+    );*/
+    $locations[$method][] = new CallOp(
+        'payments.getStarsTransactionsByID',
+        [
+            'peer' => new ExtractFromHereOp([[$method, 'peer']]),
+            ...($method === 'payments.getStarsSubscriptions' ? [] : ['ton' => new ExtractFromHereOp([[$method, 'ton', ExtractFromHereOp::FLAG_PASSTHROUGH]])]),
+            'id' => new ArrayOp(new ConstructorOp(
+                'inputStarsTransaction',
+                [
+                    'id' => new ExtractFromHereOp([
+                        [$method, ''],
+                        ['payments.starsStatus', 'history', ExtractFromHereOp::FLAG_IF_ABSENT_ABORT|ExtractFromHereOp::FLAG_UNPACK_ARRAY],
+                        ['starsTransaction', 'id']
+                    ]),
+                    'refund' => new ExtractFromHereOp([
+                        [$method, ''],
+                        ['payments.starsStatus', 'history', ExtractFromHereOp::FLAG_IF_ABSENT_ABORT|ExtractFromHereOp::FLAG_UNPACK_ARRAY],
+                        ['starsTransaction', 'refund', ExtractFromHereOp::FLAG_PASSTHROUGH]
+                    ]),
                 ]
             )),
         ]
@@ -233,7 +308,7 @@ $locations['messages.availableReactions'][] = new CallOp(
     ['hash' => new PrimitiveLiteralOp('int', 0)],
 );
 
-$locations['photo'][] = new CallOp(
+/*$locations['photo'][] = new CallOp(
     'photos.getUserPhotos',
     [
         'user_id' => new ExtractFromParentOp([['photos.getUserPhotos', 'user_id']]),
@@ -241,7 +316,22 @@ $locations['photo'][] = new CallOp(
         'max_id' => new ExtractFromHereOp([['photo', 'id']]),
         'limit' => new PrimitiveLiteralOp('int', 1),
     ]
+);*/
+
+$locations['photos.getUserPhotos'][] = new CallOp(
+    'photos.getUserPhotos',
+    [
+        'user_id' => new ExtractFromHereOp([['photos.getUserPhotos', 'user_id']]),
+        'offset' => new PrimitiveLiteralOp('int', -1),
+        'max_id' => new ExtractFromHereOp([
+            ['photos.getUserPhotos', ''],
+            ['photos.photos', 'photos', ExtractFromHereOp::FLAG_UNPACK_ARRAY],
+            ['photo', 'id']
+        ]),
+        'limit' => new PrimitiveLiteralOp('int', 1),
+    ]
 );
+
 foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) {
     $locations[$method][] = new CallOp(
         'photos.getUserPhotos',
@@ -421,6 +511,8 @@ foreach ($fileRefs as $type => $constructor) {
                         || $cons === 'foundStory'
                         || $cons === 'publicForwardStory'
                         || $cons === 'peerStories'
+                        || $cons === 'storyViewPublicRepost'
+                        || $cons === 'storyReactionPublicRepost'
                     ) {
                         return;
                     }

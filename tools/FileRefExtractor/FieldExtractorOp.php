@@ -137,10 +137,6 @@ abstract readonly class FieldExtractorOp implements TypedOp
                     } elseif (($expectFlag & (self::FLAG_IF_ABSENT_ABORT | self::FLAG_PASSTHROUGH)) !== 0) {
                         throw new AssertionError("Expected no flag at position $idx, got $expectFlag in path ".json_encode($path));
                     }
-
-                    $typeForReturn = isset($param['subtype']) ? "Vector<{$param['subtype']}>" : $param['type'];
-                    $typeForCheck = $param['subtype'] ?? $param['type'];
-                    $isFlag = isset($param['pow']);
                     break;
                 }
             }

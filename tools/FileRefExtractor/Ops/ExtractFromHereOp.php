@@ -29,7 +29,7 @@ final readonly class ExtractFromHereOp extends FieldExtractorOp
     {
         $new = [];
         foreach ($this->path as $i => $part) {
-            if ($ignoreFlag && \array_key_exists(2, $part) && $part[2] === null) {
+            if ($ignoreFlag && \array_key_exists(2, $part) && is_int($part[2]) && ($part[2] & ExtractFromHereOp::FLAG_IF_ABSENT_ABORT)) {
                 return null;
             }
             if (isset($part[2]) && $part[2] instanceof TypedOp) {
