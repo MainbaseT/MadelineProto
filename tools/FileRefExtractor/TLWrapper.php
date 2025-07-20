@@ -26,14 +26,8 @@ final class TLWrapper
     private readonly array $constructorsOfType;
     private readonly array $methodsOfType;
 
-    public array $actionsPre = [];
-    public array $actionsPost = [];
-    public array $backrefs = [];
-
     public function __construct(
         public readonly TLInterface $tl,
-        public readonly ?string $position = null,
-        public readonly bool $normalized = false,
     ) {
         $constructorsOfType = [];
         $methodsOfType = [];

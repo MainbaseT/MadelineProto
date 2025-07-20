@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
+use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
+use danog\MadelineProto\FileRefExtractor\BuildMode\Flat;
 use danog\MadelineProto\FileRefExtractor\FieldExtractorOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use danog\MadelineProto\FileRefExtractor\TypedOp;
@@ -69,7 +71,12 @@ final readonly class ExtractFromMethodCallOp implements FieldExtractorOp
     public function build(TLContext $tl): array
     {
         // Validate
-        $this->getType($tl);
+        $t = $this->getType($tl);
+        if ($tl->buildMode instanceof Flat) {
+        } elseif ($tl->buildMode instanceof Ast) {
+            Assert::eq($tl->buildMode->needsMethod ?? $this->path[0], $this->path[0]);
+            $tl->buildMode->needsMethod = $this->path[0];
+        }
         return [
             'op' => 'extractFromMethodCall',
             'isFlag' => $this->isFlag,

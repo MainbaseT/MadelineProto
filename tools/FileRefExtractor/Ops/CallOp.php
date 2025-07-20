@@ -19,6 +19,8 @@ declare(strict_types=1);
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
 use danog\MadelineProto\FileRefExtractor\ActionOp;
+use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
+use danog\MadelineProto\FileRefExtractor\BuildMode\Flat;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use danog\MadelineProto\FileRefExtractor\TypedOp;
 use Webmozart\Assert\Assert;
@@ -64,48 +66,64 @@ final readonly class CallOp implements ActionOp
         return new CallOp($method, $final);
     }
 
-    public function build(TLContext $tl): array
+    public function build(TLContext $tl): void
     {
         $final = [];
         $tl->validateParams($this->method, false, $this->args);
+        $types = [];
         foreach ($this->args as $from => $to) {
             $final[$from] = $to->build($tl);
-        }
-        $hasBackref = (bool) $tl->tl->backrefs;
-        if (!$hasBackref) {
-            $tl->tl->backrefs[$this->method] = true;
+            $types[$from] = $to->getType($tl);
         }
 
-        foreach ($tl->tl->backrefs as $cons => $_) {
-            $tl->tl->actionsPre[$cons] ??= [];
-            array_unshift($tl->tl->actionsPre[$cons], [
-                'op' => 'pushContext',
-                'ctx' => $tl->contextName,
-            ]);
+        $out = $tl->buildMode;
+        if ($out instanceof Flat) {
+            foreach ($out->backrefs as $cons => $type) {
+                $out->actionsPre[$cons] ??= [];
+                array_unshift($out->actionsPre[$cons], [
+                    'op' => 'pushContext',
+                    'ctx' => $out->contextName,
+                ]);
 
-            $tl->tl->actionsPost[$cons] ??= [];
-            array_push($tl->tl->actionsPost[$cons], [
-                'op' => 'popAndProcessContext',
-                'ctx' => $tl->contextName,
-            ]);
-        }
+                $out->actionsPost[$cons] ??= [];
+                array_push($out->actionsPost[$cons], [
+                    'op' => 'processContext',
+                    'ctx' => $out->contextName,
+                    'method' => $this->method,
+                    'args' => $final,
+                ]);
+                array_push($out->actionsPost[$cons], [
+                    'op' => 'popContext',
+                    'ctx' => $out->contextName,
+                ]);
+            }
 
-        if ($hasBackref) {
-            $tl->tl->actionsPost[$cons][] = [
+            $out->actionsPost[$cons][] = [
                 'op' => 'processContext',
-                'ctx' => $tl->contextName,
+                'ctx' => $out->contextName,
+                'method' => $this->method,
+                'args' => $final,
             ];
-            $tl->tl->actionsPost[$cons][] = [
-                'op' => 'deleteContextEntries',
-                'ctx' => $tl->contextName,
-                'entries' => array_keys($final),
+            if ($hasBackref) {
+                $out->actionsPost[$cons][] = [
+                    'op' => 'deleteContextEntries',
+                    'ctx' => $out->contextName,
+                    'entries' => array_keys($final),
+                ];
+            } else {
+                $out->actionsPost[$cons][] = [
+                    'op' => 'popContext',
+                    'ctx' => $out->contextName,
+                ];
+            }
+        } else {
+            assert($out instanceof Ast);
+            $out->output[$tl->position][] = [
+                'op' => 'call',
+                'method' => $this->method,
+                'args' => $final,
+                'needsMethod' => $out->needsMethod
             ];
         }
-
-        return [
-            'op' => 'call',
-            'method' => $this->method,
-            'args' => $final,
-        ];
     }
 }

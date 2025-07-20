@@ -16,11 +16,20 @@ declare(strict_types=1);
  * @link https://docs.madelineproto.xyz MadelineProto documentation
  */
 
-namespace danog\MadelineProto\FileRefExtractor;
+namespace danog\MadelineProto\FileRefExtractor\BuildMode;
 
-interface ActionOp
+use danog\MadelineProto\FileRefExtractor\BuildMode;
+
+final class Flat implements BuildMode
 {
-    public function build(TLContext $tl): void;
+    public array $actionsPre = [];
+    public array $actionsPost = [];
+    public array $backrefs = [];
+    public string $contextName;
 
-    public function normalize(array $stack, string $current): ?self;
+    public function cleanup(): void
+    {
+        $this->actionsPre = [];
+        $this->actionsPost = [];
+    }
 }

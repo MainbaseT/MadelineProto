@@ -20,7 +20,6 @@ namespace danog\MadelineProto\FileRefExtractor\Ops;
 
 use danog\MadelineProto\FileRefExtractor\FieldExtractorOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
-use danog\MadelineProto\FileRefExtractor\TypedOp;
 use Webmozart\Assert\Assert;
 
 final readonly class ExtractFromHereOp implements FieldExtractorOp
@@ -29,7 +28,7 @@ final readonly class ExtractFromHereOp implements FieldExtractorOp
         /** @var string[] */
         public readonly array $path,
         public readonly bool $isFlag = false,
-        public readonly ?TypedOp $ifEmptyFlag = null,
+        public readonly ?FieldExtractorOp $ifEmptyFlag = null,
     ) {
         if ($ifEmptyFlag !== null) {
             Assert::true($isFlag);
@@ -68,7 +67,7 @@ final readonly class ExtractFromHereOp implements FieldExtractorOp
     {
         // Validate
         $this->getType($tl);
-        
+
         return [
             'op' => 'extractFromHere',
             'isFlag' => $this->isFlag,

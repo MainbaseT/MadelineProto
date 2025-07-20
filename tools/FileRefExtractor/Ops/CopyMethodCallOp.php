@@ -19,6 +19,8 @@ declare(strict_types=1);
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
 use danog\MadelineProto\FileRefExtractor\ActionOp;
+use danog\MadelineProto\FileRefExtractor\BuildMode;
+use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use Webmozart\Assert\Assert;
 
@@ -35,10 +37,18 @@ final readonly class CopyMethodCallOp implements ActionOp
         return $this;
     }
 
-    public function build(TLContext $tl): array
+    public function build(TLContext $tl): void
     {
         Assert::eq($tl->position, $this->method, "Current constructor {$tl->position} does not match expected method {$this->method}");
         $tl->tl->tl->getMethods()->findByMethod($this->method)['type']; // Validate type
-        return ['op' => 'copyMethodCall', 'method' => $this->method];
+        $out = $tl->buildMode;
+        if ($out instanceof Ast) {
+            $out->output[$this->method][] = [
+                'op' => 'copyMethodCall',
+                'ctx' => $out->contextName,
+                'method' => $this->method,
+            ];
+        } else {
+        }
     }
 }

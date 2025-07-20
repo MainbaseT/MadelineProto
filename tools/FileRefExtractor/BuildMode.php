@@ -18,9 +18,7 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor;
 
-interface ActionOp
+interface BuildMode
 {
-    public function build(TLContext $tl): void;
-
-    public function normalize(array $stack, string $current): ?self;
+    public function cleanup(): void;
 }

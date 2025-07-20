@@ -16,11 +16,17 @@ declare(strict_types=1);
  * @link https://docs.madelineproto.xyz MadelineProto documentation
  */
 
-namespace danog\MadelineProto\FileRefExtractor;
+namespace danog\MadelineProto\FileRefExtractor\BuildMode;
 
-interface ActionOp
+use danog\MadelineProto\FileRefExtractor\BuildMode;
+
+final class Ast implements BuildMode
 {
-    public function build(TLContext $tl): void;
+    public array $output = [];
+    public ?string $needsMethod = null;
 
-    public function normalize(array $stack, string $current): ?self;
+    public function cleanup(): void
+    {
+        $this->needsMethod = null;
+    }
 }
