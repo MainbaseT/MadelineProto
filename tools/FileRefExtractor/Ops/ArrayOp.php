@@ -29,12 +29,12 @@ final readonly class ArrayOp implements TypedOp
     {
         $this->values = $values;
     }
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
         $final = [];
         $isDifferent = false;
         foreach ($this->values as $value) {
-            $normalized = $value->normalize($stack, $current);
+            $normalized = $value->normalize($stack, $current, $ignoreFlag);
             if ($normalized === null) {
                 return null;
             }

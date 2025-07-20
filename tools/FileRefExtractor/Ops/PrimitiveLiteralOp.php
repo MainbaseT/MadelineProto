@@ -29,7 +29,7 @@ final readonly class PrimitiveLiteralOp implements LiteralOp
         Assert::inArray($type, ['int', 'long', 'string', 'bool', 'float'], "Invalid type '$type' for LiteralOp");
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
         return $this;
     }

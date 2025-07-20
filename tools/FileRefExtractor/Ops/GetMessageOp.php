@@ -30,13 +30,13 @@ final readonly class GetMessageOp implements ActionOp
         private readonly FieldExtractorOp $id,
     ) {
     }
-    public function normalize(array $stack, string $current): ?ActionOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?ActionOp
     {
-        $peer = $this->peer->normalize($stack, $current);
+        $peer = $this->peer->normalize($stack, $current, $ignoreFlag);
         if ($peer === null) {
             return null;
         }
-        $id = $this->id->normalize($stack, $current);
+        $id = $this->id->normalize($stack, $current, $ignoreFlag);
         if ($id === null) {
             return null;
         }
@@ -50,11 +50,11 @@ final readonly class GetMessageOp implements ActionOp
         return 'messages.Messages';
     }
 
-    public function build(TLContext $tl): array
+    public function build(TLContext $tl): void
     {
         Assert::eq($this->peer->getType($tl), 'Peer');
         Assert::eq($this->id->getType($tl), 'int');
-        return [
+        $result = [
             'op' => 'get_message',
             'peer' => $this->peer->build($tl),
             'id' => $this->id->build($tl),

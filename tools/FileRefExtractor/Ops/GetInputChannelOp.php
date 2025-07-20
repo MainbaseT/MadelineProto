@@ -29,9 +29,9 @@ final readonly class GetInputChannelOp implements FieldTransformationOp
     {
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
-        $path = $this->path->normalize($stack, $current);
+        $path = $this->path->normalize($stack, $current, $ignoreFlag);
         if ($path === null) {
             return null;
         }
@@ -57,7 +57,7 @@ final readonly class GetInputChannelOp implements FieldTransformationOp
                 'from' => $this->path->build($tl),
             ];
         }
-        Assert::eq($type, 'Channel', "Expected type 'Channel' at position {$this->path->path[0]} but got '$type'");
+        Assert::eq($type, 'Channel', "Expected type 'Channel' at position {$this->path->path[0][0]} but got '$type'");
         return [
             'op' => 'getInputChannel',
             'from' => $this->path->build($tl),

@@ -19,7 +19,6 @@ declare(strict_types=1);
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
 use danog\MadelineProto\FileRefExtractor\ActionOp;
-use danog\MadelineProto\FileRefExtractor\BuildMode;
 use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use Webmozart\Assert\Assert;
@@ -30,7 +29,7 @@ final readonly class CopyMethodCallOp implements ActionOp
     {
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\ActionOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\ActionOp
     {
         Assert::eq($current, $this->method);
         Assert::isEmpty($stack);
@@ -43,12 +42,12 @@ final readonly class CopyMethodCallOp implements ActionOp
         $tl->tl->tl->getMethods()->findByMethod($this->method)['type']; // Validate type
         $out = $tl->buildMode;
         if ($out instanceof Ast) {
-            $out->output[$this->method][] = [
+            /*$out->output[$this->method][] = [
                 'op' => 'copyMethodCall',
                 'ctx' => $out->contextName,
                 'method' => $this->method,
-            ];
-        } else {
+            ];*/
         }
+
     }
 }

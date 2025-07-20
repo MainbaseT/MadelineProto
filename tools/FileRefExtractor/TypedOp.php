@@ -21,6 +21,9 @@ namespace danog\MadelineProto\FileRefExtractor;
 interface TypedOp
 {
     public function build(TLContext $tl): array;
-    public function normalize(array $stack, string $current): ?self;
+    /**
+     * @param list<list{0: string, 1: string, 2?: TypedOp|null}> $stack
+     */
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?self;
     public function getType(TLContext $tl): string;
 }

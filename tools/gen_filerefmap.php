@@ -1,11 +1,12 @@
 <?php declare(strict_types=1);
 
+use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
 use danog\MadelineProto\FileRefExtractor\Ops\ArrayOp;
 use danog\MadelineProto\FileRefExtractor\Ops\CallOp;
 use danog\MadelineProto\FileRefExtractor\Ops\ConstructorOp;
 use danog\MadelineProto\FileRefExtractor\Ops\CopyMethodCallOp;
 use danog\MadelineProto\FileRefExtractor\Ops\ExtractFromHereOp;
-use danog\MadelineProto\FileRefExtractor\Ops\ExtractFromMethodCallOp;
+use danog\MadelineProto\FileRefExtractor\Ops\ExtractFromParentOp;
 use danog\MadelineProto\FileRefExtractor\Ops\GetInputChannelOp;
 use danog\MadelineProto\FileRefExtractor\Ops\GetInputPeerOp;
 use danog\MadelineProto\FileRefExtractor\Ops\GetInputUserOp;
@@ -32,36 +33,67 @@ foreach ($TL->getConstructorsOfType('Message') as $constructor => $_) {
         continue;
     }
     $locations[$constructor][] = new GetMessageOp(
-        new ExtractFromHereOp([$constructor, 'peer_id']),
-        new ExtractFromHereOp([$constructor, 'id']),
+        new ExtractFromHereOp([[$constructor, 'peer_id']]),
+        new ExtractFromHereOp([[$constructor, 'id']]),
+        new ExtractFromHereOp([[$constructor, 'from_scheduled']]),
     );
 }
+
+foreach (['stories.StoryViewsList', 'stories.Stories', 'stories.PeerStories', 'stories.StoryReactionsList'] as $t) {
+    foreach ($TL->getMethodsOfType($t) as $method => $_) {
+        $locations['storyItem'][] = new CallOp(
+            'stories.getStoriesByID',
+            [
+                'id' => new ArrayOp(new ExtractFromHereOp([['storyItem', 'id']])),
+                'peer' => new GetInputPeerOp(new ExtractFromParentOp([[$method, 'peer']])),
+            ]
+        );
+    }
+}
+$locations['storyItem'][] = new CallOp(
+    'stories.getStoriesByID',
+    [
+        'id' => new ArrayOp(new ExtractFromHereOp([['storyItem', 'id']])),
+        'peer' => new GetInputPeerOp(new ExtractFromParentOp([['peerStories', 'peer']])),
+    ]
+);
+
+foreach (['foundStory', 'publicForwardStory', 'webPageAttributeStory'] as $c) {
+    $locations[$c][] = new CallOp(
+        'stories.getStoriesByID',
+        [
+            'id' => new ArrayOp(new ExtractFromHereOp([$c === 'webPageAttributeStory' ? [$c, 'story', null] : [$c, 'story'], ['storyItem', 'id']])),
+            'peer' => new GetInputPeerOp(new ExtractFromHereOp([[$c, 'peer']])),
+        ]
+    );
+}
+
 $locations['webPage'][] = CallOp::simple('messages.getWebPage', 'webPage', ['url' => 'url', 'hash' => new PrimitiveLiteralOp('int', 0)]);
 $locations['botApp'][] = CallOp::simple('messages.getBotApp', 'botApp', [
     'app' => new ConstructorOp(
         'inputBotAppID',
         [
-            'id' => new ExtractFromHereOp(['botApp', 'id']),
-            'access_hash' => new ExtractFromHereOp(['botApp', 'access_hash']),
+            'id' => new ExtractFromHereOp([['botApp', 'id']]),
+            'access_hash' => new ExtractFromHereOp([['botApp', 'access_hash']]),
         ]
     ),
     'hash' => new PrimitiveLiteralOp('long', 0),
 ]);
 $locations['botInfo'][] = new CallOp(
     'users.getFullUser',
-    ['id' => new GetInputUserOp(new ExtractFromHereOp(['botInfo', 'user_id'], true))],
+    ['id' => new GetInputUserOp(new ExtractFromHereOp([['botInfo', 'user_id', null]]))],
 );
 $locations['storyItem'][] = new CallOp('stories.getStoriesByID', [
-    'id' => new ArrayOp(new ExtractFromHereOp(['storyItem', 'id'])),
-    'peer' => new GetInputPeerOp(new ExtractFromHereOp(['storyItem', 'from_id'], true)),
+    'id' => new ArrayOp(new ExtractFromHereOp([['storyItem', 'id']])),
+    'peer' => new GetInputPeerOp(new ExtractFromHereOp([['storyItem', 'from_id', null]])),
 ]);
 $locations['messages.getSponsoredMessages'][] = new CopyMethodCallOp('messages.getSponsoredMessages');
 $locations['channelAdminLogEvent'][] = new CallOp(
     'channels.getAdminLog',
     [
-        'channel' => new GetInputChannelOp(new ExtractFromMethodCallOp(['channels.getAdminLog', 'channel'])),
-        'max_id' => new ExtractFromHereOp(['channelAdminLogEvent', 'id']),
-        'min_id' => new ExtractFromHereOp(['channelAdminLogEvent', 'id']),
+        'channel' => new GetInputChannelOp(new ExtractFromParentOp([['channels.getAdminLog', 'channel']])),
+        'max_id' => new ExtractFromHereOp([['channelAdminLogEvent', 'id']]),
+        'min_id' => new ExtractFromHereOp([['channelAdminLogEvent', 'id']]),
         'limit' => new PrimitiveLiteralOp('int', 1),
         'q' => new PrimitiveLiteralOp('string', ''),
     ]
@@ -69,37 +101,37 @@ $locations['channelAdminLogEvent'][] = new CallOp(
 $locations['bots.getPreviewMedias'][] = new CopyMethodCallOp('bots.getPreviewMedias');
 $locations['bots.getPreviewInfo'][] = new CopyMethodCallOp('bots.getPreviewInfo');
 $locations['bots.addPreviewMedia'][] = new CallOp('bots.getPreviewInfo', [
-    'bot' => new ExtractFromHereOp(['bots.addPreviewMedia', 'bot']),
-    'lang_code' => new ExtractFromHereOp(['bots.addPreviewMedia', 'lang_code']),
+    'bot' => new ExtractFromHereOp([['bots.addPreviewMedia', 'bot']]),
+    'lang_code' => new ExtractFromHereOp([['bots.addPreviewMedia', 'lang_code']]),
 ]);
 $locations['bots.editPreviewMedia'][] = new CallOp('bots.getPreviewInfo', [
-    'bot' => new ExtractFromHereOp(['bots.editPreviewMedia', 'bot']),
-    'lang_code' => new ExtractFromHereOp(['bots.editPreviewMedia', 'lang_code']),
+    'bot' => new ExtractFromHereOp([['bots.editPreviewMedia', 'bot']]),
+    'lang_code' => new ExtractFromHereOp([['bots.editPreviewMedia', 'lang_code']]),
 ]);
 
 $locations['updateMessageExtendedMedia'][] = new CallOp(
     'messages.getExtendedMedia',
     [
-        'id' => new ArrayOp(new ExtractFromHereOp(['updateMessageExtendedMedia', 'msg_id'])),
-        'peer' => new GetInputPeerOp(new ExtractFromHereOp(['updateMessageExtendedMedia', 'peer'])),
+        'id' => new ArrayOp(new ExtractFromHereOp([['updateMessageExtendedMedia', 'msg_id']])),
+        'peer' => new GetInputPeerOp(new ExtractFromHereOp([['updateMessageExtendedMedia', 'peer']])),
     ]
 );
 $locations['userFull'][] = new CallOp(
     'users.getFullUser',
     [
-        'id' => new GetInputUserOp(new ExtractFromHereOp(['userFull', 'id'])),
+        'id' => new GetInputUserOp(new ExtractFromHereOp([['userFull', 'id']])),
     ]
 );
 $locations['chatFull'][] = new CallOp(
     'messages.getFullChat',
     [
-        'chat_id' => new ExtractFromHereOp(['chatFull', 'id']),
+        'chat_id' => new ExtractFromHereOp([['chatFull', 'id']]),
     ]
 );
 $locations['channelFull'][] = new CallOp(
     'channels.getFullChannel',
     [
-        'channel' => new GetInputChannelOp(new ExtractFromHereOp(['channelFull', 'id'])),
+        'channel' => new GetInputChannelOp(new ExtractFromHereOp([['channelFull', 'id']])),
     ]
 );
 $locations['help.getPremiumPromo'][] = new CopyMethodCallOp('help.getPremiumPromo');
@@ -107,13 +139,13 @@ foreach ($TL->getMethodsOfType('payments.StarsStatus') as $method => $_) {
     $locations['starsTransaction'][] = new CallOp(
         'payments.getStarsTransactionsByID',
         [
-            'peer' => new ExtractFromMethodCallOp([$method, 'peer']),
-            ...($method === 'payments.getStarsSubscriptions' ? [] : ['ton' => new ExtractFromMethodCallOp([$method, 'ton'], true)]),
+            'peer' => new ExtractFromParentOp([[$method, 'peer']]),
+            ...($method === 'payments.getStarsSubscriptions' ? [] : ['ton' => new ExtractFromParentOp([[$method, 'ton', true]])]),
             'id' => new ArrayOp(new ConstructorOp(
                 'inputStarsTransaction',
                 [
-                    'id' => new ExtractFromHereOp(['starsTransaction', 'id']),
-                    'refund' => new ExtractFromHereOp(['starsTransaction', 'refund'], true),
+                    'id' => new ExtractFromHereOp([['starsTransaction', 'id']]),
+                    'refund' => new ExtractFromHereOp([['starsTransaction', 'refund', true]]),
                 ]
             )),
         ]
@@ -121,7 +153,7 @@ foreach ($TL->getMethodsOfType('payments.StarsStatus') as $method => $_) {
 }
 $locations['attachMenuBot'][] = new CallOp(
     'messages.getAttachMenuBot',
-    ['bot' => new GetInputUserOp(new ExtractFromHereOp(['attachMenuBot', 'bot_id']))]
+    ['bot' => new GetInputUserOp(new ExtractFromHereOp([['attachMenuBot', 'bot_id']]))]
 );
 $locations['theme'][] = new CallOp(
     'account.getTheme',
@@ -129,8 +161,8 @@ $locations['theme'][] = new CallOp(
         'theme' => new ConstructorOp(
             'inputTheme',
             [
-                'id' => new ExtractFromHereOp(['theme', 'id']),
-                'access_hash' => new ExtractFromHereOp(['theme', 'access_hash']),
+                'id' => new ExtractFromHereOp([['theme', 'id']]),
+                'access_hash' => new ExtractFromHereOp([['theme', 'access_hash']]),
             ]
         ),
         'format' => new ThemeFormatOp(),
@@ -142,8 +174,8 @@ $locations['wallPaper'][] = new CallOp(
         'wallpaper' => new ConstructorOp(
             'inputWallPaper',
             [
-                'id' => new ExtractFromHereOp(['wallPaper', 'id']),
-                'access_hash' => new ExtractFromHereOp(['wallPaper', 'access_hash']),
+                'id' => new ExtractFromHereOp([['wallPaper', 'id']]),
+                'access_hash' => new ExtractFromHereOp([['wallPaper', 'access_hash']]),
             ]
         ),
     ]
@@ -157,8 +189,8 @@ foreach (['stickerSetMultiCovered', 'stickerSetFullCovered'] as $c) {
             'stickerset' => new ConstructorOp(
                 'inputStickerSetID',
                 [
-                    'id' => new ExtractFromHereOp([$c, 'set', 'stickerSet', 'id']),
-                    'access_hash' => new ExtractFromHereOp([$c, 'set', 'stickerSet', 'access_hash']),
+                    'id' => new ExtractFromHereOp([[$c, 'set'], ['stickerSet', 'id']]),
+                    'access_hash' => new ExtractFromHereOp([[$c, 'set'], ['stickerSet', 'access_hash']]),
                 ],
             ),
             'hash' => new PrimitiveLiteralOp('int', 0),
@@ -171,8 +203,8 @@ $locations['messages.stickerSet'][] = new CallOp(
         'stickerset' => new ConstructorOp(
             'inputStickerSetID',
             [
-                'id' => new ExtractFromHereOp(['messages.stickerSet', 'set', 'stickerSet', 'id']),
-                'access_hash' => new ExtractFromHereOp(['messages.stickerSet', 'set', 'stickerSet', 'access_hash']),
+                'id' => new ExtractFromHereOp([['messages.stickerSet', 'set'], ['stickerSet', 'id']]),
+                'access_hash' => new ExtractFromHereOp([['messages.stickerSet', 'set'], ['stickerSet', 'access_hash']]),
             ],
         ),
         'hash' => new PrimitiveLiteralOp('int', 0),
@@ -198,9 +230,9 @@ $locations['messages.availableReactions'][] = new CallOp(
 $locations['photo'][] = new CallOp(
     'photos.getUserPhotos',
     [
-        'user_id' => new ExtractFromMethodCallOp(['photos.getUserPhotos', 'user_id']),
+        'user_id' => new ExtractFromParentOp([['photos.getUserPhotos', 'user_id']]),
         'offset' => new PrimitiveLiteralOp('int', -1),
-        'max_id' => new ExtractFromHereOp(['photo', 'id']),
+        'max_id' => new ExtractFromHereOp([['photo', 'id']]),
         'limit' => new PrimitiveLiteralOp('int', 1),
     ]
 );
@@ -208,16 +240,18 @@ foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) 
     $locations['photo'][] = new CallOp(
         'photos.getUserPhotos',
         [
-            'user_id' => new ExtractFromMethodCallOp(
-                [$method, 'bot'],
-                true,
-                new ConstructorOp(
-                    'inputUserSelf',
-                    []
-                )
+            'user_id' => new ExtractFromParentOp(
+                [[
+                    $method,
+                    'bot',
+                    new ConstructorOp(
+                        'inputUserSelf',
+                        []
+                    ),
+                ]]
             ),
             'offset' => new PrimitiveLiteralOp('int', -1),
-            'max_id' => new ExtractFromHereOp(['photo', 'id']),
+            'max_id' => new ExtractFromHereOp([['photo', 'id']]),
             'limit' => new PrimitiveLiteralOp('int', 1),
         ]
     );
@@ -225,11 +259,11 @@ foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) 
 $locations['photo'][] = new CallOp(
     'photos.getUserPhotos',
     [
-        'user_id' => new ExtractFromMethodCallOp(
-            ['photos.uploadContactProfilePhoto', 'user_id'],
+        'user_id' => new ExtractFromParentOp(
+            [['photos.uploadContactProfilePhoto', 'user_id']],
         ),
         'offset' => new PrimitiveLiteralOp('int', -1),
-        'max_id' => new ExtractFromHereOp(['photo', 'id']),
+        'max_id' => new ExtractFromHereOp([['photo', 'id']]),
         'limit' => new PrimitiveLiteralOp('int', 1),
     ]
 );
@@ -242,7 +276,7 @@ $locations['messages.uploadImportedMedia'][]= new Noop('A freshly uploaded media
 $locations['document'][] = new CallOp(
     'messages.getStickerSet',
     [
-        'stickerset' => new GetStickerSetFromDocumentAttributesOp(new ExtractFromHereOp(['document', 'attributes'])),
+        'stickerset' => new GetStickerSetFromDocumentAttributesOp(new ExtractFromHereOp([['document', 'attributes']])),
         'hash' => new PrimitiveLiteralOp('int', 0),
     ]
 );
@@ -259,13 +293,12 @@ foreach (['payments.ResaleStarGifts', 'payments.StarGiftUpgradePreview', 'StarGi
 }
 
 $recurse = static function (Closure $onStackEnd, string $type, array &$stack, array &$stackTypes) use ($TL, &$recurse): void {
-    if ($type === 'Update' || $type === 'Updates') {
+    if ($type === 'Update' || $type === 'Updates' || $type === 'PeerStories') {
         $onStackEnd($stack);
         return;
     }
 
-    $posName = count($stack);
-    $pos = count($stack)+1;
+    $pos = count($stack);
     foreach ([...$TL->tl->getConstructors()->by_id, ...$TL->tl->getMethods()->by_id] as $constructor) {
         $predicate = $constructor['predicate'] ?? $constructor['method'];
         if ($predicate === 'updateShortMessage' || $predicate === 'updateShortChatMessage' || $predicate === 'updateShortSentMessage') {
@@ -285,70 +318,78 @@ $recurse = static function (Closure $onStackEnd, string $type, array &$stack, ar
                     && $param['subtype'] === $type
                 )
             )) {
-                $stack[$posName] = $param['name'];
-                $stack[$pos] = $predicate;
+                $stack[$pos] = [$predicate, $param['name']];
+                if (isset($param['pow'])) {
+                    $stack[$pos][2] = null;
+                }
                 $recurse($onStackEnd, $t, $stack, $stackTypes);
-                unset($stack[$pos], $stack[$posName]);
+                unset($stack[$pos]);
 
             }
         }
         unset($stackTypes[$t]);
     }
     foreach ($TL->getMethodsOfType($type, true) as $method => $data) {
-        $stack[$posName] = '';
-        $stack[$pos] = $method;
+        $stack[$pos] = [$method, ''];
         $onStackEnd($stack);
     }
     foreach ($TL->getMethodsOfType("Vector<$type>", true) as $method => $data) {
-        $stack[$posName] = '';
-        $stack[$pos] = $method;
+        $stack[$pos] = [$method, ''];
         $onStackEnd($stack);
     }
-    unset($stack[$posName], $stack[$pos]);
+    unset($stack[$pos]);
 };
 
 $fileRefs = ['Document' => 'document', 'Photo' => 'photo'];
 
+$output = new Ast;
 foreach ($locations as $constructor => $ops) {
     foreach ($ops as $idx => $op) {
-        $op->build(new TLContext($TL, "{$constructor}_$idx", $constructor));
+        $op->build(new TLContext($TL, $output, $constructor));
     }
 }
-
-$builtPre = $TL->actionsPre;
-$builtPost = $TL->actionsPost;
-
 $validated = [];
 
+$tmp = new Ast;
 foreach ($fileRefs as $type => $constructor) {
-    $stack = [$constructor];
+    $stack = [[$constructor, 'file_reference']];
     $stackTypes = [$type => true];
     $recurse(
-        static function (array $stack) use ($locations, $TL, &$validated): void {
-            $slice = [];
-            $had = false;
-            $top = end($stack);
-            for ($x = count($stack)-1; $x >= 0; $x--) {
-                $constructor = $stack[$x];
-                if ($x % 2) {
-                    $slice[] = $constructor;
-                    continue; // Skip parameter names
-                }
-                if (isset($locations[$constructor])) {
-                    foreach ($locations[$constructor] as $op) {
-                        $normalized = $op->normalize($slice, $constructor);
+        static function (array $stack) use ($locations, $TL, $tmp, &$validated): void {
+            foreach ([false, true] as $ignoreFlagged) {
+                $slice = [];
+                $hadAll = true;
+                $hadAny = false;
+                $top = end($stack)[0];
+                for ($x = count($stack)-1; $x >= 0; $x--) {
+                    $pair = $stack[$x];
+                    foreach ($locations[$pair[0]] ?? [] as $op) {
+                        $normalized = $op->normalize($slice, $pair[0], $ignoreFlagged);
                         if ($normalized === null) {
+                            $hadAll = false;
                             continue;
                         }
-                        $had = true;
-                        $normalized->build(new TLContext($TL, $top, $top, true));
-                        $validated[$constructor][spl_object_id($op)] = $op;
+                        $hadAny = true;
+                        $normalized->build(new TLContext($TL, $tmp, $top));
+                        $validated[$pair[0]][spl_object_id($op)] = $op;
                     }
+                    $slice[] = $pair;
                 }
-                $slice[] = $constructor;
-            }
-            if (!$had) {
-                throw new AssertionError("Uncovered path: " . json_encode($stack));
+                if (!$ignoreFlagged && !$hadAny) {
+                    throw new AssertionError("Uncovered path: " . json_encode($stack));
+                }
+                if ($ignoreFlagged && !$hadAll) {
+                    if ($slice[0][0] === 'updateStory') {
+                        // This has the peer flag set.
+                        continue;
+                    }
+                    foreach ($slice as [$cons]) {
+                        if ($cons === 'webPageAttributeStory') {
+                            continue 2;
+                        }
+                    }
+                    throw new AssertionError("Uncovered path (didn't have at least one unflagged context): " . json_encode($stack));
+                }
             }
         },
         $type,

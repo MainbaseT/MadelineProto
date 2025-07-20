@@ -22,50 +22,30 @@ use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
 use danog\MadelineProto\FileRefExtractor\BuildMode\Flat;
 use danog\MadelineProto\FileRefExtractor\FieldExtractorOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
-use danog\MadelineProto\FileRefExtractor\TypedOp;
 use Webmozart\Assert\Assert;
 
-final readonly class ExtractFromMethodCallOp implements FieldExtractorOp
+final readonly class ExtractFromParentOp extends FieldExtractorOp
 {
-    public function __construct(
-        /** @var string[] */
-        public readonly array $path,
-        public readonly bool $isFlag = false,
-        public readonly ?TypedOp $ifEmptyFlag = null,
-    ) {
-        if ($ifEmptyFlag !== null) {
-            Assert::true($isFlag);
-        }
-    }
-
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
-        if ($stack[0] !== $this->path[0]) {
+        if ($stack[0][0] !== $this->path[0][0]) {
             return null;
         }
-        $if = $this->ifEmptyFlag?->normalize($stack, $current);
-        if ($if === null && $this->ifEmptyFlag !== null) {
-            return null;
+        $new = [];
+        foreach ($this->path as $i => $part) {
+            if ($ignoreFlag && \array_key_exists(2, $part) && $part[2] === null) {
+                return null;
+            }
+            if (isset($part[2]) && $part[2] !== true) {
+                $n = $part[2]->normalize($stack, $current, $ignoreFlag);
+                if ($n === null) {
+                    return null;
+                }
+                $part[2] = $n;
+            }
+            $new[$i] = $part;
         }
-        return new ExtractFromHereOp(
-            $this->path,
-            $this->isFlag,
-            $if
-        );
-    }
-
-    public function getType(TLContext $tl): string
-    {
-        $t = $tl->getTypeAtPosition($this);
-        if ($this->ifEmptyFlag !== null) {
-            Assert::eq($this->ifEmptyFlag->getType($tl), $t);
-        }
-        return $t;
-    }
-
-    public function extend(string ...$path): self
-    {
-        return new self(...$this->path, ...$path);
+        return new ExtractFromHereOp($new);
     }
 
     public function build(TLContext $tl): array
@@ -74,13 +54,18 @@ final readonly class ExtractFromMethodCallOp implements FieldExtractorOp
         $t = $this->getType($tl);
         if ($tl->buildMode instanceof Flat) {
         } elseif ($tl->buildMode instanceof Ast) {
-            Assert::eq($tl->buildMode->needsMethod ?? $this->path[0], $this->path[0]);
-            $tl->buildMode->needsMethod = $this->path[0];
+            /*Assert::eq($tl->buildMode->needsMethod ?? $this->path[0][0], $this->path[0][0]);
+            $tl->buildMode->needsMethod = $this->path[0][0];*/
+        }
+        $new = [];
+        foreach ($this->path as $part) {
+            if (isset($part[2]) && $part[2] !== true) {
+                $part[2] = $part[2]->build($tl);
+            }
+            $new[] = $part;
         }
         return [
             'op' => 'extractFromMethodCall',
-            'isFlag' => $this->isFlag,
-            'ifFlagEmptyUse' => $this->ifEmptyFlag?->build($tl),
             'path' => $this->path,
         ];
     }

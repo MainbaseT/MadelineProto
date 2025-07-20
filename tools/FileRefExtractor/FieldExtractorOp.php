@@ -18,6 +18,25 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor;
 
-interface FieldExtractorOp extends TypedOp
+abstract readonly class FieldExtractorOp implements TypedOp
 {
+    public function __construct(
+        /** @var list<list{0: string, 1: string, 2?: TypedOp|null}> */
+        public array $path,
+    ) {
+        foreach ($path as $elem) {
+            if (\count($elem) !== 2 && \count($elem) !== 3) {
+                throw new \InvalidArgumentException('Invalid path part: ' . json_encode($path));
+            }
+            if (isset($elem[2]) && !$elem[2] instanceof TypedOp && $elem[2] !== true) {
+                throw new \InvalidArgumentException('Invalid path part: ' . json_encode($path));
+            }
+        }
+    }
+
+    public function getType(TLContext $tl): string
+    {
+        return $tl->getTypeAtPosition($this);
+    }
+
 }

@@ -27,7 +27,7 @@ final readonly class ThemeFormatOp implements LiteralOp
     {
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
         return $this;
     }

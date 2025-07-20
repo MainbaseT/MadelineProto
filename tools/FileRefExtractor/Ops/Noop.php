@@ -27,13 +27,13 @@ final readonly class Noop implements ActionOp
     {
     }
 
-    public function normalize(array $stack, string $current): ?ActionOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?ActionOp
     {
         return $this;
     }
 
-    public function build(TLContext $tl): array
+    public function build(TLContext $tl): void
     {
-        return ['op' => 'noop', 'why' => $this->why];
+        // ['op' => 'noop', 'why' => $this->why];
     }
 }

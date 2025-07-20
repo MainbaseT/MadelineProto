@@ -22,5 +22,5 @@ interface ActionOp
 {
     public function build(TLContext $tl): void;
 
-    public function normalize(array $stack, string $current): ?self;
+    public function normalize(array $stack, string $current, bool $ignoreFlagged): ?self;
 }

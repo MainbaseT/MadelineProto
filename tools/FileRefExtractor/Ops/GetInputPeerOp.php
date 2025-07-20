@@ -29,9 +29,9 @@ final readonly class GetInputPeerOp implements FieldTransformationOp
     {
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
-        $path = $this->path->normalize($stack, $current);
+        $path = $this->path->normalize($stack, $current, $ignoreFlag);
         if ($path === null) {
             return null;
         }
@@ -51,7 +51,7 @@ final readonly class GetInputPeerOp implements FieldTransformationOp
         if ($type === 'InputPeer') {
             return $this->path->build($tl);
         }
-        Assert::eq($type, 'Peer', "Expected type 'Peer' at position {$this->path->path[0]} but got '$type'");
+        Assert::eq($type, 'Peer', "Expected type 'Peer' at position {$this->path->path[0][0]} but got '$type'");
         return [
             'op' => 'getInputPeer',
             'from' => $this->path->build($tl),

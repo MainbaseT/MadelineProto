@@ -34,12 +34,12 @@ final readonly class CallOp implements ActionOp
     ) {
         Assert::allIsInstanceOf($args, TypedOp::class);
     }
-    public function normalize(array $stack, string $current): ?ActionOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?ActionOp
     {
         $final = [];
         $isDifferent = false;
         foreach ($this->args as $from => $to) {
-            $normalized = $to->normalize($stack, $current);
+            $normalized = $to->normalize($stack, $current, $ignoreFlag);
             if ($normalized === null) {
                 return null;
             }
@@ -59,7 +59,7 @@ final readonly class CallOp implements ActionOp
         $final = [];
         foreach ($args as $from => $to) {
             if (!$to instanceof TypedOp) {
-                $to = new ExtractFromHereOp([$constructor, $to]);
+                $to = new ExtractFromHereOp([[$constructor, $to]]);
             }
             $final[$from] = $to;
         }
@@ -117,12 +117,12 @@ final readonly class CallOp implements ActionOp
                 ];
             }
         } else {
-            assert($out instanceof Ast);
+            \assert($out instanceof Ast);
             $out->output[$tl->position][] = [
                 'op' => 'call',
                 'method' => $this->method,
                 'args' => $final,
-                'needsMethod' => $out->needsMethod
+                'needsMethod' => $out->needsMethod,
             ];
         }
     }

@@ -32,12 +32,12 @@ final readonly class ConstructorOp implements TypedOp
         Assert::allIsInstanceOf($args, TypedOp::class);
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
         $final = [];
         $isDifferent = false;
         foreach ($this->args as $from => $to) {
-            $normalized = $to->normalize($stack, $current);
+            $normalized = $to->normalize($stack, $current, $ignoreFlag);
             if ($normalized === null) {
                 return null;
             }

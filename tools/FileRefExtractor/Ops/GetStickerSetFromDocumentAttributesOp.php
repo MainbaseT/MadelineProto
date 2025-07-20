@@ -30,9 +30,9 @@ final readonly class GetStickerSetFromDocumentAttributesOp implements FieldTrans
     ) {
     }
 
-    public function normalize(array $stack, string $current): ?\danog\MadelineProto\FileRefExtractor\TypedOp
+    public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
-        $path = $this->path->normalize($stack, $current);
+        $path = $this->path->normalize($stack, $current, $ignoreFlag);
         if ($path === null) {
             return null;
         }
