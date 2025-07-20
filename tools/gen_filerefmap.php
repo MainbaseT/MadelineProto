@@ -243,10 +243,10 @@ $locations['photo'][] = new CallOp(
     ]
 );
 foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) {
-    $locations['photo'][] = new CallOp(
+    $locations[$method][] = new CallOp(
         'photos.getUserPhotos',
         [
-            'user_id' => new ExtractFromParentOp(
+            'user_id' => new ExtractFromHereOp(
                 [[
                     $method,
                     'bot',
@@ -257,19 +257,19 @@ foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) 
                 ]]
             ),
             'offset' => new PrimitiveLiteralOp('int', -1),
-            'max_id' => new ExtractFromHereOp([['photo', 'id']]),
+            'max_id' => new ExtractFromHereOp([[$method, ''], ['photos.photo', 'photo'], ['photo', 'id']]),
             'limit' => new PrimitiveLiteralOp('int', 1),
         ]
     );
 }
-$locations['photo'][] = new CallOp(
+$locations['photos.uploadContactProfilePhoto'][] = new CallOp(
     'photos.getUserPhotos',
     [
-        'user_id' => new ExtractFromParentOp(
+        'user_id' => new ExtractFromHereOp(
             [['photos.uploadContactProfilePhoto', 'user_id']],
         ),
         'offset' => new PrimitiveLiteralOp('int', -1),
-        'max_id' => new ExtractFromHereOp([['photo', 'id']]),
+        'max_id' => new ExtractFromHereOp([['photos.uploadContactProfilePhoto', ''], ['photos.photo', 'photo'], ['photo', 'id']]),
         'limit' => new PrimitiveLiteralOp('int', 1),
     ]
 );
