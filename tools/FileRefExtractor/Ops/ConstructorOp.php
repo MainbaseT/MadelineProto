@@ -61,13 +61,16 @@ final readonly class ConstructorOp implements TypedOp
         $final = [];
         $tl->validateParams($this->constructor, true, $this->args);
         foreach ($this->args as $from => $to) {
-            $final[$from] = $to->build($tl);
+            $final[] = ['_' => 'typedOpArg', 'key' => $from, 'value' => $to->build($tl)];
         }
         return [
-            'op' => 'constructor',
+            '_' => 'typedOp',
             'type' => $this->getType($tl),
-            'constructor' => $this->constructor,
-            'args' => $final,
+            'op' => [
+                '_' => 'constructor',
+                'constructor' => $this->constructor,
+                'args' => $final,
+            ],
         ];
     }
 }

@@ -50,9 +50,12 @@ final readonly class ExtractFromHereOp extends FieldExtractorOp
     public function build(TLContext $tl): array
     {
         return [
-            'op' => 'extractFromHere',
+            '_' => 'typedOp',
             'type' => $this->getType($tl),
-            'path' => $this->buildPath($tl),
+            'op' => [
+                '_' => 'copyOp',
+                'path' => $this->buildPath($tl),
+            ],
         ];
     }
 }

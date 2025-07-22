@@ -18,8 +18,15 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\BuildMode;
 
+use AssertionError;
 use danog\MadelineProto\FileRefExtractor\BuildMode;
 use danog\MadelineProto\FileRefExtractor\TLContext;
+use danog\MadelineProto\Magic;
+use danog\MadelineProto\MTProto;
+use danog\MadelineProto\Settings\TLSchema;
+use danog\MadelineProto\SettingsEmpty;
+use danog\MadelineProto\TL\TL;
+use Webmozart\Assert\Assert;
 
 final class Ast implements BuildMode
 {
@@ -33,15 +40,35 @@ final class Ast implements BuildMode
 
     public function getOutput(): array
     {
-        return $this->output;
+        $value = ['_' => 'fileReferenceOrigins', 'ctxs' => $this->output];
+        Magic::start(false);
+
+        $s = new TLSchema;
+        $s = $s->setOther(['filerefs' => __DIR__ . '/../../../src/TL_filerefs.tl']);
+        $TL = new TL(new MTProto(new SettingsEmpty));
+        $TL->init($s);
+        $serialized = $TL->serializeObject(['type' => 'FileReferenceOrigins'], $value, '');
+        $value = $TL->deserialize($serialized, ['type' => '', 'connection' => null, 'encrypted' => true]);
+        return $value;
     }
 
-    public function addNode(TLContext $ctx, array $node): void
+    public function addNode(TLContext $ctx, ?array $action = null, ?string $why = null): void
     {
-        if ($this->needsParent !== null) {
-            $node['needsParent'] = $this->needsParent;
+        $out = [
+            '_' => $ctx->isConstructor ? 'originConstructor' : 'originMethod',
+            $ctx->isConstructor ? 'constructor' : 'method' => $ctx->position,
+            //'needsParent' => $this->needsParent,
+        ];
+        if ($action !== null) {
+            $out['action'] = $action;
+            Assert::null($why);
+        } elseif ($why !== null) {
+            $out['noop'] = $why;
+            Assert::null($action);
+        } else {
+            throw new AssertionError("Either 'action' or 'why' must be provided.");
         }
-        $this->output[$ctx->position][] = $node;
+        $this->output[] = $out;
         $this->needsParent = null;
     }
 

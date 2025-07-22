@@ -72,54 +72,55 @@ final readonly class CallOp implements ActionOp
         $tl->validateParams($this->method, false, $this->args);
         $types = [];
         foreach ($this->args as $from => $to) {
-            $final[$from] = $to->build($tl);
+            $final[] = ['_' => 'typedOpArg', 'key' => $from, 'value' => $to->build($tl)];
             $types[$from] = $to->getType($tl);
         }
 
         $out = $tl->buildMode;
         if ($out instanceof Flat) {
+            /*
             foreach ($out->backrefs as $cons => $type) {
                 $out->actionsPre[$cons] ??= [];
                 array_unshift($out->actionsPre[$cons], [
-                    'op' => 'pushContext',
+                    '_' => 'pushContext',
                     'ctx' => $out->contextName,
                 ]);
 
                 $out->actionsPost[$cons] ??= [];
                 array_push($out->actionsPost[$cons], [
-                    'op' => 'processContext',
+                    '_' => 'processContext',
                     'ctx' => $out->contextName,
                     'method' => $this->method,
                     'args' => $final,
                 ]);
                 array_push($out->actionsPost[$cons], [
-                    'op' => 'popContext',
+                    '_' => 'popContext',
                     'ctx' => $out->contextName,
                 ]);
             }
 
             $out->actionsPost[$cons][] = [
-                'op' => 'processContext',
+                '_' => 'processContext',
                 'ctx' => $out->contextName,
                 'method' => $this->method,
                 'args' => $final,
             ];
             if ($hasBackref) {
                 $out->actionsPost[$cons][] = [
-                    'op' => 'deleteContextEntries',
+                    '_' => 'deleteContextEntries',
                     'ctx' => $out->contextName,
                     'entries' => array_keys($final),
                 ];
             } else {
                 $out->actionsPost[$cons][] = [
-                    'op' => 'popContext',
+                    '_' => 'popContext',
                     'ctx' => $out->contextName,
                 ];
-            }
+            }*/
         } else {
             \assert($out instanceof Ast);
             $out->addNode($tl, [
-                'op' => 'call',
+                '_' => 'callOp',
                 'method' => $this->method,
                 'args' => $final,
             ]);

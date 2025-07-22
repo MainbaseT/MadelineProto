@@ -45,7 +45,7 @@ final readonly class CopyMethodCallOp implements ActionOp
             $out->addNode(
                 $tl,
                 [
-                    'op' => 'copyMethodCall',
+                    '_' => 'copyMethodCall',
                 ]
             );
         }

@@ -41,9 +41,18 @@ final readonly class PrimitiveLiteralOp implements LiteralOp
     public function build(TLContext $tl): array
     {
         return [
-            'op' => 'literal',
-            'type' => $this->type,
-            'value' => $this->value,
+            '_' => 'typedOp',
+            'type' => $this->getType($tl),
+            '_' =>[
+                '_' => match ($this->type) {
+                    'int' => 'literalIntOp',
+                    'long' => 'literalLongOp',
+                    'string' => 'literalStringOp',
+                    'bool' => 'literalBoolOp',
+                    'float' => 'literalFloatOp',
+                },
+                'value' => $this->value,
+            ],
         ];
     }
 }

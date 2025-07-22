@@ -38,10 +38,7 @@ final readonly class Noop implements ActionOp
         if ($tl->buildMode instanceof Ast) {
             $tl->buildMode->addNode(
                 $tl,
-                [
-                    'op' => 'noop',
-                    'why' => $this->why,
-                ]
+                why: $this->why,
             );
         }
     }

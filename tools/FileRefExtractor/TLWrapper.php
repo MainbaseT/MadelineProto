@@ -43,6 +43,10 @@ final class TLWrapper
         $this->methodsOfType = $methodsOfType;
     }
 
+    public function isConstructor(string $constructor): bool
+    {
+        return (bool) $this->tl->getConstructors()->findByPredicate($constructor);
+    }
     public function getConstructorsOfType(string $type, bool $ignoreEmpty = false): array
     {
         $t = $this->constructorsOfType[$type] ?? [];

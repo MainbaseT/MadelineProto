@@ -58,29 +58,28 @@ abstract readonly class FieldExtractorOp implements TypedOp
         $new = [];
         foreach ($this->path as $part) {
             $newPart = [
+                '_' => 'pathPart',
                 'constructor' => $part[0],
                 'param' => $part[1],
             ];
             if (isset($part[2])) {
                 if ($part[2] instanceof TypedOp) {
-                    $newPart['isFlag'] = true;
-                    $newPart['fallbackIfFlagEmpty'] = $part[2]->build($tl);
+                    $newPart['flag_fallback_if_empty'] = $part[2]->build($tl);
                 } elseif (\is_int($part[2])) {
                     if ($part[2] & self::FLAG_UNPACK_ARRAY) {
-                        $newPart['unpackArray'] = true;
+                        $newPart['unpack_vector'] = true;
                     }
                     if ($part[2] & self::FLAG_IF_ABSENT_ABORT) {
-                        $newPart['isFlag'] = true;
+                        $newPart['flag_abort_if_empty'] = true;
                     }
                     if ($part[2] & self::FLAG_PASSTHROUGH) {
-                        $newPart['isFlag'] = true;
-                        $newPart['flagPassthrough'] = true;
+                        $newPart['flag_passthrough'] = true;
                     }
                 }
             }
             $new[] = $newPart;
         }
-        return $new;
+        return ['_' => 'path', 'parts' => $new];
     }
     final public function getType(TLContext $tl): string
     {

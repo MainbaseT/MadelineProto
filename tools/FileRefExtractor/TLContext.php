@@ -27,6 +27,7 @@ final readonly class TLContext
         public TLWrapper $tl,
         public BuildMode $buildMode,
         public string $position,
+        public bool $isConstructor,
         public bool $ignoreFlagged = false,
     ) {
     }

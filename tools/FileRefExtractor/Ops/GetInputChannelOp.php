@@ -53,16 +53,22 @@ final readonly class GetInputChannelOp implements FieldTransformationOp
         }
         if ($type === 'long') {
             return [
-                'op' => 'getInputChannelById',
+                '_' => 'typedOp',
                 'type' => $this->getType($tl),
-                'from' => $this->path->build($tl),
+                'op' => [
+                    '_' => 'getInputChannelByIdOp',
+                    'path' => $this->path->build($tl),
+                ],
             ];
         }
         Assert::eq($type, 'Channel', "Expected type 'Channel' at position {$this->path->path[0][0]} but got '$type'");
         return [
-            'op' => 'getInputChannel',
+            '_' => 'typedOp',
             'type' => $this->getType($tl),
-            'from' => $this->path->build($tl),
+            'op' => [
+                '_' => 'getInputChannelOp',
+                'from' => $this->path->build($tl),
+            ],
         ];
     }
 }

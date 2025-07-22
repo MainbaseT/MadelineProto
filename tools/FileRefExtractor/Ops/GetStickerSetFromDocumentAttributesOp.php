@@ -51,9 +51,12 @@ final readonly class GetStickerSetFromDocumentAttributesOp implements FieldTrans
     {
         Assert::eq($this->path->getType($tl), 'Vector<DocumentAttribute>');
         return [
-            'op' => 'extractStickerSetFromDocumentAttributes',
-            'from' => $this->path->build($tl),
+            '_' => 'typedOp',
             'type' => $this->getType($tl),
+            '_' => [
+                '_' => 'getStickerSetFromDocumentAttributesOp',
+                'from' => $this->path->build($tl),
+            ],
         ];
     }
 }

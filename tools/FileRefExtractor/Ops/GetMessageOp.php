@@ -69,12 +69,10 @@ final readonly class GetMessageOp implements ActionOp
         }
         if ($tl->buildMode instanceof Ast) {
             $tl->buildMode->addNode($tl, [
-                'op' => 'get_message',
-                'args' => [
-                    'peer' => $this->peer->build($tl),
-                    'id' => $this->id->build($tl),
-                    ...$extra,
-                ],
+                '_' => 'getMessageOp',
+                'peer' => $this->peer->build($tl),
+                'id' => $this->id->build($tl),
+                ...$extra,
             ]);
         }
     }

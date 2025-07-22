@@ -60,14 +60,17 @@ final readonly class ArrayOp implements TypedOp
         $t = $this->values[0]->getType($tl);
         $arr = [];
         foreach ($this->values as $key => $value) {
-            $curType = $value->getType($tl);
-            Assert::eq($curType, $t, "Expected type '$t' at position $key but got '$curType'");
-            $arr[$key] = $value->build($tl);
+            $value = $value->build($tl);
+            Assert::eq($value['type'], $t, "Expected type '$t' at position $key but got '{$value['type']}'");
+            $arr[$key] = $value['op'];
         }
         return [
-            'op' => 'array',
-            'type' => "Vector<$t>",
-            'value' => $arr,
+            '_' => 'typedOp',
+            'type' => $this->getType($tl),
+            'op' => [
+                '_' => 'arrayOp',
+                'values' => $arr,
+            ],
         ];
     }
 }

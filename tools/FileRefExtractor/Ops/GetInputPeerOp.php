@@ -53,9 +53,12 @@ final readonly class GetInputPeerOp implements FieldTransformationOp
         }
         Assert::eq($type, 'Peer', "Expected type 'Peer' at position {$this->path->path[0][0]} but got '$type'");
         return [
-            'op' => 'getInputPeer',
+            '_' => 'typedOp',
             'type' => $this->getType($tl),
-            'from' => $this->path->build($tl),
+            'op' => [
+                '_' => 'getInputPeerOp',
+                'path' => $this->path->build($tl),
+            ],
         ];
     }
 }

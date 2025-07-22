@@ -39,8 +39,11 @@ final readonly class ThemeFormatOp implements LiteralOp
     public function build(TLContext $tl): array
     {
         return [
-            'op' => 'themeFormat',
-            'type' => $this->getType($tl),
+            '_' => 'typedOp',
+            'type' => 'string',
+            'op' => [
+                '_' => 'themeFormatLiteralOp',
+            ],
         ];
     }
 }

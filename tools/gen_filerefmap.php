@@ -463,7 +463,7 @@ foreach (['Document' => 'document', 'Photo' => 'photo'] as $type => $constructor
                         continue;
                     }
                     $hadAny = true;
-                    $normalized->build(new TLContext($TL, $tmp, $top));
+                    $normalized->build(new TLContext($TL, $tmp, $top, $TL->isConstructor($top)));
                     $validated[$pair[0]][spl_object_id($op)] = $op;
 
                     $normalized = $op->normalize($slice, $pair[0], true);
@@ -536,7 +536,7 @@ if ($diff) {
 $output = new Ast(allowBackrefs: false);
 foreach ($locations as $constructor => $ops) {
     foreach ($ops as $idx => $op) {
-        $op->build(new TLContext($TL, $output, $constructor));
+        $op->build(new TLContext($TL, $output, $constructor, $TL->isConstructor($constructor)));
     }
 }
 $output = $output->getOutput();
