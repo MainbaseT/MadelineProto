@@ -21,6 +21,7 @@ namespace danog\MadelineProto\FileRefExtractor;
 use AssertionError;
 use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
 use danog\MadelineProto\FileRefExtractor\Ops\CopyOp;
+use danog\MadelineProto\FileRefExtractor\Ops\ExtractFromParentOp;
 use Webmozart\Assert\Assert;
 
 abstract readonly class FieldExtractorOp implements TypedOp
@@ -83,7 +84,7 @@ abstract readonly class FieldExtractorOp implements TypedOp
             }
             $new[] = $newPart;
         }
-        return ['_' => 'path', 'parts' => $new];
+        return ['_' => $this instanceof ExtractFromParentOp ? 'pathParent': 'path', 'parts' => $new];
     }
     final public function getType(TLContext $tl): string
     {
