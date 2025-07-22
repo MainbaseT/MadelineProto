@@ -67,7 +67,7 @@ final readonly class GetInputChannelOp implements FieldTransformationOp
             'type' => $this->getType($tl),
             'op' => [
                 '_' => 'getInputChannelOp',
-                'from' => $this->path->build($tl),
+                'path' => $this->path->build($tl),
             ],
         ];
     }

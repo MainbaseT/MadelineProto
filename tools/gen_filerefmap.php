@@ -539,11 +539,10 @@ foreach ($locations as $constructor => $ops) {
         $op->build(new TLContext($TL, $output, $constructor, $TL->isConstructor($constructor)));
     }
 }
-$output = $output->getOutput();
+$tl = $output->getOutput();
 
 file_put_contents(
-    __DIR__.'/../src/file_ref_map.json',
-    json_encode($output)
+    __DIR__.'/../src/file_ref_map.dat',
+    $tl
 );
-
 echo("OK!\n".PHP_EOL);

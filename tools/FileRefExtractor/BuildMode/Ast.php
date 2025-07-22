@@ -38,7 +38,7 @@ final class Ast implements BuildMode
     ) {
     }
 
-    public function getOutput(): array
+    public function getOutput(): string
     {
         $value = ['_' => 'fileReferenceOrigins', 'ctxs' => $this->output];
         Magic::start(false);
@@ -48,8 +48,8 @@ final class Ast implements BuildMode
         $TL = new TL((new ReflectionClass(MTProto::class))->newInstanceWithoutConstructor());
         $TL->init($s);
         $serialized = $TL->serializeObject(['type' => 'FileReferenceOrigins'], $value, '');
-        $value = $TL->deserialize($serialized, ['type' => '', 'connection' => null, 'encrypted' => true]);
-        return [$serialized, json_encode($value)];
+        //$valueDe = $TL->deserialize($serialized, ['type' => '', 'connection' => null, 'encrypted' => true]);
+        return $serialized;
     }
 
     public function addNode(TLContext $ctx, ?array $action = null, ?string $why = null): void
