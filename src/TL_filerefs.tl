@@ -11,7 +11,12 @@ callOp method:string args:Vector<TypedOpArg> = ActionOp;
 getMessageOp flags:# peer:TypedOp id:TypedOp from_scheduled:flags.0?TypedOp = ActionOp;
 
 // Field extraction path
-pathPart flags:# constructor:string param:string flag_abort_if_empty:flags.0?true flag_fallback_if_empty:flags.1?TypedOp flag_passthrough:flags.2?true = PathPart;
+paramNotFlag = ParamFlag;
+paramIsFlagAbortIfEmpty = ParamFlag;
+paramIsFlagFallback fallback:TypedOp = ParamFlag;
+paramIsFlagPassthrough = ParamFlag;
+
+pathPart flags:# constructor:string param:string flag:ParamFlag = PathPart;
 
 path parts:Vector<PathPart> = Path;
 pathParent parts:Vector<PathPart> = Path;

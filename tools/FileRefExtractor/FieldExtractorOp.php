@@ -63,10 +63,11 @@ abstract readonly class FieldExtractorOp implements TypedOp
                 '_' => 'pathPart',
                 'constructor' => $part[0],
                 'param' => $part[1],
+                'flag' => ['_' => 'paramNotFlag'],
             ];
             if (isset($part[2])) {
                 if ($part[2] instanceof TypedOp) {
-                    $newPart['flag_fallback_if_empty'] = $part[2]->build($tl);
+                    $newPart['flag'] = ['_' => 'paramIsFlagFallback', 'fallback' => $part[2]->build($tl)];
                 } elseif (\is_int($part[2])) {
                     if ($part[2] & self::FLAG_UNPACK_ARRAY) {
                         if ($tl->buildMode instanceof Ast && !$tl->buildMode->allowUnpacking) {
@@ -75,10 +76,10 @@ abstract readonly class FieldExtractorOp implements TypedOp
                         $newPart['unpack_vector'] = true;
                     }
                     if ($part[2] & self::FLAG_IF_ABSENT_ABORT) {
-                        $newPart['flag_abort_if_empty'] = true;
+                        $newPart['flag'] = ['_' => 'paramIsFlagAbortIfEmpty'];
                     }
                     if ($part[2] & self::FLAG_PASSTHROUGH) {
-                        $newPart['flag_passthrough'] = true;
+                        $newPart['flag'] = ['_' => 'paramIsFlagPassthrough'];
                     }
                 }
             }
