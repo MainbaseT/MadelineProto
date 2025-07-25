@@ -49,7 +49,7 @@ final readonly class PrimitiveLiteralOp implements LiteralOp
                     'long' => 'longLiteralOp',
                     'string' => 'stringLiteralOp',
                     'bool' => 'boolLiteralOp',
-                    'float' => 'floatLiteralOp',
+                    'double' => 'doubleLiteralOp',
                 },
                 'value' => $this->value,
             ],

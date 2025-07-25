@@ -47,5 +47,5 @@ intLiteralOp value:int = TypedOpOp;
 longLiteralOp value:long = TypedOpOp;
 stringLiteralOp value:string = TypedOpOp;
 boolLiteralOp value:Bool = TypedOpOp;
-floatLiteralOp value:float = TypedOpOp;
+doubleLiteralOp value:double = TypedOpOp;
 themeFormatLiteralOp = TypedOpOp;
