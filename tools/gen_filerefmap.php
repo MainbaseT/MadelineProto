@@ -164,6 +164,13 @@ $locations['channels.getAdminLog'][] = new CallOp(
     ]
 );*/
 
+foreach (['stories.createAlbum', 'stories.getAlbums', 'stories.updateAlbum'] as $m) {
+    $locations[$m][] = new CallOp('stories.getAlbums', [
+        'peer' => new CopyOp([[$m, 'peer']]),
+        'hash' => new PrimitiveLiteralOp('long', 0),
+    ]);
+}
+
 $locations['bots.getPreviewMedias'][] = new CopyMethodCallOp('bots.getPreviewMedias');
 $locations['bots.getPreviewInfo'][] = new CopyMethodCallOp('bots.getPreviewInfo');
 $locations['bots.addPreviewMedia'][] = new CallOp('bots.getPreviewInfo', [
