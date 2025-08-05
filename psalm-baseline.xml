@@ -7162,6 +7162,9 @@
       <code><![CDATA[$this->tdDescriptions['methods'][$name]]]></code>
       <code><![CDATA[$this->tdDescriptions['methods'][$name]]]></code>
     </EmptyArrayAccess>
+    <InvalidScalarArgument>
+      <code><![CDATA[$value]]></code>
+    </InvalidScalarArgument>
     <LessSpecificReturnStatement>
       <code><![CDATA[$TL_dict]]></code>
     </LessSpecificReturnStatement>
@@ -7287,7 +7290,6 @@
       <code><![CDATA[$this->constructors->findByPredicate('vector')['id']]]></code>
       <code><![CDATA[$this->constructors->findByPredicate('vector')['id']]]></code>
       <code><![CDATA[$this->constructors->findByPredicate((bool) $object ? 'boolTrue' : 'boolFalse')['id']]]></code>
-      <code><![CDATA[$this->constructors->findByType($type)['predicate']]]></code>
       <code><![CDATA[$this->tdDescriptions['methods'][$name]['params']]]></code>
       <code><![CDATA[$tl['id']]]></code>
       <code><![CDATA[$type]]></code>
@@ -7296,6 +7298,7 @@
       <code><![CDATA[$type['connection']->new_outgoing[$x['req_msg_id']]]]></code>
       <code><![CDATA[$type['type'][0]]]></code>
       <code><![CDATA[$type['type'][0]]]></code>
+      <code><![CDATA[$value['predicate']]]></code>
     </MixedArrayAccess>
     <MixedArrayAssignment>
       <code><![CDATA[$TL_dict['constructors']]]></code>
@@ -7431,6 +7434,7 @@
       <code><![CDATA[$value]]></code>
       <code><![CDATA[$value]]></code>
       <code><![CDATA[$value]]></code>
+      <code><![CDATA[$value]]></code>
       <code><![CDATA[$x]]></code>
       <code><![CDATA[$x]]></code>
       <code><![CDATA[$x]]></code>
@@ -7489,9 +7493,6 @@
      *      methods: list<array{id: numeric-string, method: string, params: list<array{name: string, type: string}>, type: string, layer?: int}>
      * }]]></code>
     </MoreSpecificReturnType>
-    <PossiblyFalseArgument>
-      <code><![CDATA[$value]]></code>
-    </PossiblyFalseArgument>
     <PossiblyInvalidArgument>
       <code><![CDATA[$arguments['cancellation'] ?? null]]></code>
       <code><![CDATA[$arguments['cancellation'] ?? null]]></code>
@@ -7505,9 +7506,6 @@
     <PossiblyInvalidIterator>
       <code><![CDATA[$x['value']]]></code>
     </PossiblyInvalidIterator>
-    <PossiblyNullArgument>
-      <code><![CDATA[$value]]></code>
-    </PossiblyNullArgument>
     <PossiblyNullReference>
       <code><![CDATA[botAPIToMTProto]]></code>
     </PossiblyNullReference>
