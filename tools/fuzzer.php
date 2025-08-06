@@ -78,6 +78,8 @@ $user->updateSettings($settings);
 Assert::true($user->isSelfUser(), "fuzz_user.madeline is not a user!");
 $user->restart();
 
+Tools::sleep(1.0);
+
 $user->getSelf();
 $bot->getSelf();
 $bot->getUpdates();
