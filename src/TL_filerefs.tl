@@ -25,7 +25,8 @@ pathParent parts:Vector<PathPart> = Path;
 // Extractor+storer
 extractAndStore from:Path to:string = FieldExtractor;
 
-extractStickerSetFromDocumentAttributesAndStore from:Path to:string = FieldExtractor;
+extractInputStickerSetFromDocumentAttributesAndStore from:Path to:string = FieldExtractor;
+extractInputStickerSetFromStickerSetAndStore from:Path to:string = FieldExtractor;
 
 extractPeerIdFromPeerAndStore from:Path to:string = FieldExtractor;
 extractPeerIdFromInputPeerAndStore from:Path to:string = FieldExtractor;
