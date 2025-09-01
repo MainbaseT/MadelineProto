@@ -58,7 +58,7 @@ abstract readonly class FieldExtractorOp implements TypedOp
     final protected function buildPath(TLContext $tl): array
     {
         $new = [];
-        foreach ($this->path as $part) {
+        foreach ($this->path as $k => $part) {
             $newPart = [
                 '_' => 'pathPart',
                 'constructor' => $part[0],
@@ -79,16 +79,37 @@ abstract readonly class FieldExtractorOp implements TypedOp
                         $newPart['flag'] = ['_' => 'paramIsFlagAbortIfEmpty'];
                     }
                     if ($part[2] & self::FLAG_PASSTHROUGH) {
+                        Assert::eq($k, \count($this->path) - 1, 'Can only use passthrough flag on last element');
                         $newPart['flag'] = ['_' => 'paramIsFlagPassthrough'];
                     }
                 }
             }
             $new[] = $newPart;
         }
+        $serialized = json_encode($new);
+        if (isset($tl->buildMode->stored[$serialized])) {
+            $name = $tl->buildMode->stored[$serialized]['name'];
+        } else {
+            $isFlag = $newPart['flag']['_'] === 'paramIsFlagPassthrough';
+            $type = $this->getType($tl);
+            if ($isFlag) {
+                $flag = $tl->buildMode->storedFlags++;
+                $type = "flags.$flag?$type";
+            }
+            $name = $newPart['param'];
+            if (isset($tl->buildMode->storedNames[$name])) {
+                throw new AssertionError("Need custom name for ".json_encode($this->path));
+            }
+            $tl->buildMode->storedNames[$name] = true;
+            $tl->buildMode->stored[$serialized] = [
+                'name' => $name,
+                'type' => $type,
+            ];
+        }
         return [
             '_' => 'path',
             'extracted' => ['_' => $this instanceof ExtractFromParentOp ? 'pathExtractorParent': 'pathExtractor', 'parts' => $new],
-            'stored_param' => '',
+            'stored_param' => $name,
         ];
     }
     final public function getType(TLContext $tl): string

@@ -28,7 +28,8 @@ final readonly class CallOp implements ActionOp
     /** @param TypedOp[] $args */
     public function __construct(
         private readonly string $method,
-        private readonly array $args
+        private readonly array $args,
+        private readonly string $stored_constructor,
     ) {
         Assert::allIsInstanceOf($args, TypedOp::class);
     }
@@ -47,12 +48,12 @@ final readonly class CallOp implements ActionOp
             $final[$from] = $normalized;
         }
         if ($isDifferent) {
-            return new self($this->method, $final);
+            return new self($this->method, $final, $this->stored_constructor);
         }
         return $this;
     }
 
-    public static function simple(string $method, string $constructor, array $args): self
+    public static function simple(string $method, string $constructor, array $args, string $stored_constructor): self
     {
         $final = [];
         foreach ($args as $from => $to) {
@@ -61,7 +62,7 @@ final readonly class CallOp implements ActionOp
             }
             $final[$from] = $to;
         }
-        return new CallOp($method, $final);
+        return new CallOp($method, $final, $stored_constructor);
     }
 
     public function build(TLContext $tl): void
@@ -78,6 +79,7 @@ final readonly class CallOp implements ActionOp
             '_' => 'callOp',
             'method' => $this->method,
             'args' => $final,
+            'stored_constructor' => $this->stored_constructor,
         ]);
     }
 }

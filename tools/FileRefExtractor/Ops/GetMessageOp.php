@@ -29,6 +29,7 @@ final readonly class GetMessageOp implements ActionOp
         private readonly FieldExtractorOp $peer,
         private readonly FieldExtractorOp $id,
         private readonly ?FieldExtractorOp $fromScheduled,
+        private readonly string $stored_constructor
     ) {
     }
     public function normalize(array $stack, string $current, bool $ignoreFlag): ?ActionOp
@@ -46,7 +47,7 @@ final readonly class GetMessageOp implements ActionOp
             return null;
         }
         if ($peer !== $this->peer || $id !== $this->id || $fromScheduled !== $this->fromScheduled) {
-            return new self($peer, $id, $fromScheduled);
+            return new self($peer, $id, $fromScheduled, $this->stored_constructor);
         }
         return $this;
     }
@@ -68,6 +69,7 @@ final readonly class GetMessageOp implements ActionOp
         }
         $tl->buildMode->addNode($tl, [
             '_' => 'getMessageOp',
+            'stored_constructor' => $this->stored_constructor,
             'peer' => $this->peer->build($tl),
             'id' => $this->id->build($tl),
             ...$extra,

@@ -24,7 +24,7 @@ use Webmozart\Assert\Assert;
 
 final readonly class CopyMethodCallOp implements ActionOp
 {
-    public function __construct(private readonly string $method)
+    public function __construct(private readonly string $method, private readonly string $stored_constructor)
     {
     }
 
@@ -49,7 +49,8 @@ final readonly class CopyMethodCallOp implements ActionOp
         }
         $result = new CallOp(
             $this->method,
-            $args
+            $args,
+            $this->stored_constructor
         );
 
         $result->build($tl);

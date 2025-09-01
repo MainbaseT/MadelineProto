@@ -29,6 +29,8 @@ path extracted:PathExtractor stored_param:string = Path;
 // It is fully pre-validated during the generation of the definition file.
 typedOp type:string op:TypedOpOp = TypedOp;
 
+
+// The actual value
 copyOp path:Path = TypedOpOp;
 copyFromParentOp path:Path = TypedOpOp;
 

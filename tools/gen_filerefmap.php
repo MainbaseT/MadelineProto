@@ -45,6 +45,7 @@ foreach ($TL->getConstructorsOfType('Message') as $constructor => $_) {
         new CopyOp([[$constructor, 'peer_id']]),
         new CopyOp([[$constructor, 'id']]),
         $constructor === 'message' ? new CopyOp([[$constructor, 'from_scheduled', CopyOp::FLAG_PASSTHROUGH]]) : null,
+        'fileSourceMessage',
     );
 }
 
@@ -58,7 +59,8 @@ foreach (['stories.Stories'] as $t) {
             [
                 'id' => new ArrayOp(new CopyOp([['storyItem', 'id']])),
                 'peer' => new GetInputPeerOp(new ExtractFromParentOp([[$method, 'peer']])),
-            ]
+            ],
+            'fileSourceStory'
         );
     }
 }
@@ -85,14 +87,16 @@ $locations['storyViewPublicRepost'][] = new CallOp(
     [
         'id' => new ArrayOp(new CopyOp([['storyViewPublicRepost', 'story'], ['storyItem', 'id']])),
         'peer' => new GetInputPeerOp(new CopyOp([['storyViewPublicRepost', 'peer_id']])),
-    ]
+    ],
+    'fileSourceStory'
 );
 $locations['storyReactionPublicRepost'][] = new CallOp(
     'stories.getStoriesByID',
     [
         'id' => new ArrayOp(new CopyOp([['storyReactionPublicRepost', 'story'], ['storyItem', 'id']])),
         'peer' => new GetInputPeerOp(new CopyOp([['storyReactionPublicRepost', 'peer_id']])),
-    ]
+    ],
+    'fileSourceStory'
 );
 
 /*$locations['peerStories'][] = new CallOp(
@@ -108,7 +112,8 @@ $locations['storyItem'][] = new CallOp(
     [
         'id' => new ArrayOp(new CopyOp([['storyItem', 'id']])),
         'peer' => new GetInputPeerOp(new ExtractFromParentOp([['peerStories', 'peer']])),
-    ]
+    ],
+    'fileSourceStory'
 );
 
 foreach (['foundStory', 'publicForwardStory', 'webPageAttributeStory', 'messageMediaStory'] as $c) {
@@ -118,11 +123,18 @@ foreach (['foundStory', 'publicForwardStory', 'webPageAttributeStory', 'messageM
         [
             'id' => new ArrayOp(new CopyOp([$optional ? [$c, 'story', CopyOp::FLAG_IF_ABSENT_ABORT] : [$c, 'story'], ['storyItem', 'id']])),
             'peer' => new GetInputPeerOp(new CopyOp([[$c, 'peer']])),
-        ]
+        ],
+        'fileSourceStory'
     );
 }
 
-$locations['webPage'][] = CallOp::simple('messages.getWebPage', 'webPage', ['url' => 'url', 'hash' => new PrimitiveLiteralOp('int', 0)]);
+$locations['webPage'][] = CallOp::simple(
+    'messages.getWebPage',
+    'webPage',
+    ['url' => 'url', 'hash' => new PrimitiveLiteralOp('int', 0)],
+    'fileSourceWebPage'
+);
+
 $locations['botApp'][] = CallOp::simple('messages.getBotApp', 'botApp', [
     'app' => new ConstructorOp(
         'inputBotAppID',
@@ -132,16 +144,21 @@ $locations['botApp'][] = CallOp::simple('messages.getBotApp', 'botApp', [
         ]
     ),
     'hash' => new PrimitiveLiteralOp('long', 0),
-]);
+], 'fileSourceBotApp');
+
 $locations['botInfo'][] = new CallOp(
     'users.getFullUser',
     ['id' => new GetInputUserOp(new CopyOp([['botInfo', 'user_id', CopyOp::FLAG_IF_ABSENT_ABORT]]))],
+    'fileSourceUserFull'
 );
 $locations['storyItem'][] = new CallOp('stories.getStoriesByID', [
     'id' => new ArrayOp(new CopyOp([['storyItem', 'id']])),
     'peer' => new GetInputPeerOp(new CopyOp([['storyItem', 'from_id', CopyOp::FLAG_IF_ABSENT_ABORT]])),
-]);
-$locations['messages.getSponsoredMessages'][] = new CopyMethodCallOp('messages.getSponsoredMessages');
+], 'fileSourceStory');
+
+$locations['messages.getSponsoredMessages'][] = new CopyMethodCallOp('messages.getSponsoredMessages', 'fileSourceSponsoredMessage');
+//$locations['messages.getSponsoredMessages'][] = new Noop('Do not store file references from sponsored messages');
+
 $locations['channelAdminLogEvent'][] = new CallOp(
     'channels.getAdminLog',
     [
@@ -150,7 +167,8 @@ $locations['channelAdminLogEvent'][] = new CallOp(
         'min_id' => new CopyOp([['channelAdminLogEvent', 'id']]),
         'limit' => new PrimitiveLiteralOp('int', 1),
         'q' => new PrimitiveLiteralOp('string', ''),
-    ]
+    ],
+    'fileSourceAdminLog'
 );
 
 /*
@@ -177,46 +195,50 @@ foreach (['stories.createAlbum', 'stories.getAlbums', 'stories.updateAlbum'] as 
     $locations[$m][] = new CallOp('stories.getAlbums', [
         'peer' => new CopyOp([[$m, 'peer']]),
         'hash' => new PrimitiveLiteralOp('long', 0),
-    ]);
+    ], 'fileSourceStoryAlbum');
 }
 
-$locations['bots.getPreviewMedias'][] = new CopyMethodCallOp('bots.getPreviewMedias');
-$locations['bots.getPreviewInfo'][] = new CopyMethodCallOp('bots.getPreviewInfo');
+$locations['bots.getPreviewMedias'][] = new CopyMethodCallOp('bots.getPreviewMedias', 'fileSourceBotPreviewMedia');
+$locations['bots.getPreviewInfo'][] = new CopyMethodCallOp('bots.getPreviewInfo', 'fileSourceBotPreviewInfo');
 $locations['bots.addPreviewMedia'][] = new CallOp('bots.getPreviewInfo', [
     'bot' => new CopyOp([['bots.addPreviewMedia', 'bot']]),
     'lang_code' => new CopyOp([['bots.addPreviewMedia', 'lang_code']]),
-]);
+], 'fileSourceBotPreviewInfo');
 $locations['bots.editPreviewMedia'][] = new CallOp('bots.getPreviewInfo', [
     'bot' => new CopyOp([['bots.editPreviewMedia', 'bot']]),
     'lang_code' => new CopyOp([['bots.editPreviewMedia', 'lang_code']]),
-]);
+], 'fileSourceBotPreviewInfo');
 
 $locations['updateMessageExtendedMedia'][] = new CallOp(
     'messages.getExtendedMedia',
     [
         'id' => new ArrayOp(new CopyOp([['updateMessageExtendedMedia', 'msg_id']])),
         'peer' => new GetInputPeerOp(new CopyOp([['updateMessageExtendedMedia', 'peer']])),
-    ]
+    ],
+    'fileSourcePaidMedia'
 );
 $locations['userFull'][] = new CallOp(
     'users.getFullUser',
     [
         'id' => new GetInputUserOp(new CopyOp([['userFull', 'id']])),
-    ]
+    ],
+    'fileSourceUserFull'
 );
 $locations['chatFull'][] = new CallOp(
     'messages.getFullChat',
     [
         'chat_id' => new CopyOp([['chatFull', 'id']]),
-    ]
+    ],
+    'fileSourceChatFull'
 );
 $locations['channelFull'][] = new CallOp(
     'channels.getFullChannel',
     [
         'channel' => new GetInputChannelOp(new CopyOp([['channelFull', 'id']])),
-    ]
+    ],
+    'fileSourceChannelFull'
 );
-$locations['help.getPremiumPromo'][] = new CopyMethodCallOp('help.getPremiumPromo');
+$locations['help.getPremiumPromo'][] = new CopyMethodCallOp('help.getPremiumPromo', 'fileSourcePremiumPromo');
 
 $starMethods = [];
 foreach ($TL->getMethodsOfType('payments.StarsStatus') as $method => $_) {
@@ -233,7 +255,8 @@ foreach ($TL->getMethodsOfType('payments.StarsStatus') as $method => $_) {
                     'refund' => new CopyOp([['starsTransaction', 'refund', CopyOp::FLAG_PASSTHROUGH]]),
                 ]
             )),
-        ]
+        ],
+        'fileSourceStarsTransaction'
     );/*
     $locations[$method][] = new CallOp(
         'payments.getStarsTransactionsByID',
@@ -260,7 +283,8 @@ foreach ($TL->getMethodsOfType('payments.StarsStatus') as $method => $_) {
 }
 $locations['attachMenuBot'][] = new CallOp(
     'messages.getAttachMenuBot',
-    ['bot' => new GetInputUserOp(new CopyOp([['attachMenuBot', 'bot_id']]))]
+    ['bot' => new GetInputUserOp(new CopyOp([['attachMenuBot', 'bot_id']]))],
+    'fileSourceAttachMenuBot'
 );
 $locations['theme'][] = new CallOp(
     'account.getTheme',
@@ -273,7 +297,8 @@ $locations['theme'][] = new CallOp(
             ]
         ),
         'format' => new ThemeFormatOp(),
-    ]
+    ],
+    'fileSourceTheme'
 );
 $locations['wallPaper'][] = new CallOp(
     'account.getWallPaper',
@@ -285,7 +310,8 @@ $locations['wallPaper'][] = new CallOp(
                 'access_hash' => new CopyOp([['wallPaper', 'access_hash']]),
             ]
         ),
-    ]
+    ],
+    'fileSourceWallPaper'
 );
 
 // Multiple variations to handle references from covers in StickerSetCovered and messages.StickerSet
@@ -301,7 +327,8 @@ foreach (['stickerSetMultiCovered', 'stickerSetFullCovered'] as $c) {
                 ],
             ),
             'hash' => new PrimitiveLiteralOp('int', 0),
-        ]
+        ],
+        'fileSourceStickerSet'
     );
 }
 $locations['messages.stickerSet'][] = new CallOp(
@@ -315,11 +342,12 @@ $locations['messages.stickerSet'][] = new CallOp(
             ],
         ),
         'hash' => new PrimitiveLiteralOp('int', 0),
-    ]
+    ],
+    'fileSourceStickerSet'
 );
-$locations['messages.savedGifs'][] = new CallOp('messages.getSavedGifs', ['hash' => new PrimitiveLiteralOp('long', 0)]);
+$locations['messages.savedGifs'][] = new CallOp('messages.getSavedGifs', ['hash' => new PrimitiveLiteralOp('long', 0)], 'fileSourceSavedGifs');
 foreach (['account.savedRingtones', 'account.savedRingtoneConverted', 'account.uploadRingtone'] as $c) {
-    $locations[$c][] = new CallOp('account.getSavedRingtones', ['hash' => new PrimitiveLiteralOp('long', 0)]);
+    $locations[$c][] = new CallOp('account.getSavedRingtones', ['hash' => new PrimitiveLiteralOp('long', 0)], 'fileSourceSavedRingtones');
 }
 
 $locations['recentMeUrlChatInvite'][] = new Noop('Do not store references based on chat invite links');
@@ -328,10 +356,12 @@ $locations['messages.checkChatInvite'][] = new Noop('Do not store references bas
 $locations['messages.availableEffects'][] = new CallOp(
     'messages.getAvailableEffects',
     ['hash' => new PrimitiveLiteralOp('int', 0)],
+    'fileSourceAvailableEffects'
 );
 $locations['messages.availableReactions'][] = new CallOp(
     'messages.getAvailableReactions',
     ['hash' => new PrimitiveLiteralOp('int', 0)],
+    'fileSourceAvailableReactions'
 );
 
 $locations['photo'][] = new CallOp(
@@ -341,7 +371,8 @@ $locations['photo'][] = new CallOp(
         'offset' => new PrimitiveLiteralOp('int', -1),
         'max_id' => new CopyOp([['photo', 'id']]),
         'limit' => new PrimitiveLiteralOp('int', 1),
-    ]
+    ],
+    'fileSourceUserProfilePhoto'
 );
 /*
 $locations['photos.getUserPhotos'][] = new CallOp(
@@ -375,7 +406,8 @@ foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) 
             'offset' => new PrimitiveLiteralOp('int', -1),
             'max_id' => new CopyOp([[$method, ''], ['photos.photo', 'photo'], ['photo', 'id']]),
             'limit' => new PrimitiveLiteralOp('int', 1),
-        ]
+        ],
+        'fileSourceUserProfilePhoto'
     );
 }
 $locations['photos.uploadContactProfilePhoto'][] = new CallOp(
@@ -387,7 +419,8 @@ $locations['photos.uploadContactProfilePhoto'][] = new CallOp(
         'offset' => new PrimitiveLiteralOp('int', -1),
         'max_id' => new CopyOp([['photos.uploadContactProfilePhoto', ''], ['photos.photo', 'photo'], ['photo', 'id']]),
         'limit' => new PrimitiveLiteralOp('int', 1),
-    ]
+    ],
+    'fileSourceUserProfilePhoto'
 );
 $locations['messages.getInlineBotResults'][]= new Noop('Inline bot results are ephemeral');
 $locations['messages.getPreparedInlineMessage'][]= new Noop('Inline bot results are ephemeral');
@@ -400,9 +433,10 @@ $locations['document'][] = new CallOp(
     [
         'stickerset' => new GetStickerSetFromDocumentAttributesOp(new CopyOp([['document', 'attributes']])),
         'hash' => new PrimitiveLiteralOp('int', 0),
-    ]
+    ],
+    'fileSourceStickerSet'
 );
-$locations['messages.getDocumentByHash'][] = new CopyMethodCallOp('messages.getDocumentByHash');
+$locations['messages.getDocumentByHash'][] = new CopyMethodCallOp('messages.getDocumentByHash', 'fileSourceDocumentByHash');
 $locations['updateServiceNotification'][] = new Noop('Cannot refetch service notifications');
 
 $locations['messages.getWebPagePreview'][] = new Noop("No locations are added for the method call, as it doesn't use persistent IDs as input; the location is instead extracted from the persistent IDs in the returned WebPage object");

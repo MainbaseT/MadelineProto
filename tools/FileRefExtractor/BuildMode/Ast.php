@@ -30,7 +30,14 @@ use Webmozart\Assert\Assert;
 
 final class Ast implements BuildMode
 {
+    /** @var array<string, array{name: string, type: string}> */
+    public array $stored = [];
+    /** @var array<string, true> */
+    public array $storedNames = [];
+    public int $storedFlags = 0;
+
     private array $output = [];
+    private array $outputSchema = [];
     private ?string $needsParent = null;
 
     public function __construct(
@@ -66,10 +73,37 @@ final class Ast implements BuildMode
         }
         if ($action !== null) {
             $out['action'] = $action;
+
+            Assert::keyExists($action, 'stored_constructor');
+            Assert::notEmpty($this->stored, 'No stored fields collected for action with stored_constructor ' . $action['stored_constructor']);
+
+            $constructor = $action['stored_constructor'];
+
+            $paramsStr = $this->storedFlags ? "$constructor flags:# " : "$constructor ";
+            foreach ($this->stored as $param) {
+                $paramsStr .= "{$param['name']}:{$param['type']} ";
+            }
+            $paramsStr .= '= FileSource;';
+
+            $this->storedFlags = 0;
+            $this->stored = [];
+            $this->storedNames = [];
+
+            if (isset($this->outputSchema[$constructor])) {
+                if ($this->outputSchema[$constructor] !== $paramsStr) {
+                    echo("Existing schema for $constructor ({$this->outputSchema[$constructor]}) does not match newly generated schema $paramsStr\n");
+                }
+            } else {
+                $this->outputSchema[$constructor] = $paramsStr;
+            }
+
             Assert::null($why);
         } elseif ($why !== null) {
             $out['action'] = ['_' => 'noOp', 'why' => $why];
             Assert::null($action);
+            Assert::isEmpty($this->stored);
+            Assert::isEmpty($this->storedNames);
+            Assert::eq($this->storedFlags, 0);
         } else {
             throw new AssertionError("Either 'action' or 'why' must be provided.");
         }
