@@ -1732,6 +1732,11 @@
       <code><![CDATA[$this->callId]]></code>
     </MixedAssignment>
   </file>
+  <file src="src/EventHandler/Message/Service/DialogSetChatTheme.php">
+    <MixedAssignment>
+      <code><![CDATA[$this->emoticon]]></code>
+    </MixedAssignment>
+  </file>
   <file src="src/EventHandler/Participant.php">
     <MixedAssignment>
       <code><![CDATA[$res[$prop->getName()]]]></code>
@@ -5077,7 +5082,6 @@
       <code><![CDATA[$message['action']['distance']]]></code>
       <code><![CDATA[$message['action']['duration'] ?? null]]></code>
       <code><![CDATA[$message['action']['duration'] ?? null]]></code>
-      <code><![CDATA[$message['action']['emoticon']]]></code>
       <code><![CDATA[$message['action']['game_id']]]></code>
       <code><![CDATA[$message['action']['gift']]]></code>
       <code><![CDATA[$message['action']['hidden'] ?? null]]></code>
@@ -5113,6 +5117,7 @@
       <code><![CDATA[$message['action']['subscription_until_date'] ?? null]]></code>
       <code><![CDATA[$message['action']['text']]]></code>
       <code><![CDATA[$message['action']['text']]]></code>
+      <code><![CDATA[$message['action']['theme']]]></code>
       <code><![CDATA[$message['action']['title']]]></code>
       <code><![CDATA[$message['action']['title']]]></code>
       <code><![CDATA[$message['action']['title']]]></code>
@@ -5194,7 +5199,6 @@
       <code><![CDATA[$message['action']['distance']]]></code>
       <code><![CDATA[$message['action']['duration']]]></code>
       <code><![CDATA[$message['action']['duration']]]></code>
-      <code><![CDATA[$message['action']['emoticon']]]></code>
       <code><![CDATA[$message['action']['from_id']]]></code>
       <code><![CDATA[$message['action']['game_id']]]></code>
       <code><![CDATA[$message['action']['gift']]]></code>
@@ -5238,6 +5242,7 @@
       <code><![CDATA[$message['action']['subscription_until_date']]]></code>
       <code><![CDATA[$message['action']['text']]]></code>
       <code><![CDATA[$message['action']['text']]]></code>
+      <code><![CDATA[$message['action']['theme']]]></code>
       <code><![CDATA[$message['action']['title']]]></code>
       <code><![CDATA[$message['action']['title']]]></code>
       <code><![CDATA[$message['action']['title']]]></code>
