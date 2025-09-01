@@ -32,4 +32,28 @@ interface Users
      * @return list<array{_: 'requirementToContactEmpty'}|array{_: 'requirementToContactPremium'}|array{_: 'requirementToContactPaidMessages', stars_amount: int}> Array of  @see https://docs.madelineproto.xyz/API_docs/types/RequirementToContact.html
      */
     public function getRequirementsToContact(array $id = [], ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+
+    /**
+     *
+     *
+     * @param array|int|string $id @see https://docs.madelineproto.xyz/API_docs/types/InputUser.html
+     * @param list<int|string>|array<never, never> $hash Array of  @see https://docs.madelineproto.xyz/API_docs/types/int|string.html
+     * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
+     * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
+     * @param ?\Amp\Cancellation $cancellation Cancellation
+     * @return array{_: 'users.savedMusicNotModified', count: int}|array{_: 'users.savedMusic', count: int, documents: list<array{_: 'documentEmpty', id: array}|array{_: 'document', id: array, access_hash: array, file_reference: array, date: array, mime_type: array, size: array, thumbs?: list<array>, video_thumbs?: list<array>, dc_id: array, attributes: list<array>}>} @see https://docs.madelineproto.xyz/API_docs/types/users.SavedMusic.html
+     */
+    public function getSavedMusic(array|int|string|null $id = null, int|null $offset = 0, int|null $limit = 0, array $hash = [], ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+
+    /**
+     *
+     *
+     * @param array|int|string $id @see https://docs.madelineproto.xyz/API_docs/types/InputUser.html
+     * @param list<array>|array<never, never> $documents Array of  @see https://docs.madelineproto.xyz/API_docs/types/InputDocument.html
+     * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
+     * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
+     * @param ?\Amp\Cancellation $cancellation Cancellation
+     * @return array{_: 'users.savedMusicNotModified', count: int}|array{_: 'users.savedMusic', count: int, documents: list<array{_: 'documentEmpty', id: array}|array{_: 'document', id: array, access_hash: array, file_reference: array, date: array, mime_type: array, size: array, thumbs?: list<array>, video_thumbs?: list<array>, dc_id: array, attributes: list<array>}>} @see https://docs.madelineproto.xyz/API_docs/types/users.SavedMusic.html
+     */
+    public function getSavedMusicByID(array|int|string|null $id = null, array $documents = [], ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 }
