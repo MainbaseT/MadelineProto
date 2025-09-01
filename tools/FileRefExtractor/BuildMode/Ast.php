@@ -68,7 +68,7 @@ final class Ast implements BuildMode
             $out['action'] = $action;
             Assert::null($why);
         } elseif ($why !== null) {
-            $out['noop'] = $why;
+            $out['action'] = ['_' => 'noOp', 'why' => $why];
             Assert::null($action);
         } else {
             throw new AssertionError("Either 'action' or 'why' must be provided.");

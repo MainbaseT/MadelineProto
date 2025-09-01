@@ -17,13 +17,22 @@ use danog\MadelineProto\FileRefExtractor\Ops\PrimitiveLiteralOp;
 use danog\MadelineProto\FileRefExtractor\Ops\ThemeFormatOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use danog\MadelineProto\FileRefExtractor\TLWrapper;
+use danog\MadelineProto\Magic;
 use danog\MadelineProto\Settings\TLSchema;
 use danog\MadelineProto\TL\TL;
 
 require 'vendor/autoload.php';
 
+$schema = new TLSchema;
+
+if (isset($argv[1])) {
+    $schema->setAPISchema($argv[1]);
+}
+
+Magic::start(false);
+
 $TL = new TL(null);
-$TL->init(new TLSchema);
+$TL->init($schema);
 
 $TL = new TLWrapper($TL);
 $locations = [];

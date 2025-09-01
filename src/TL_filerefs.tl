@@ -1,7 +1,7 @@
 // Root
 fileReferenceOrigins ctxs:Vector<Origin> = FileReferenceOrigins;
 
-origin flags:# predicate:string is_constructor:flags.0?true action:flags.1?ActionOp noop:flags.2?string needs_parent:flags.3?string parent_is_constructor:flags.4?true = origin;
+origin flags:# predicate:string is_constructor:flags.0?true action:ActionOp needs_parent:flags.3?string parent_is_constructor:flags.4?true = origin;
 
 // For string => TypedOp dictionaries
 typedOpArg key:string value:TypedOp = TypedOpArg;
@@ -9,6 +9,7 @@ typedOpArg key:string value:TypedOp = TypedOpArg;
 // Actions
 callOp method:string args:Vector<TypedOpArg> = ActionOp;
 getMessageOp flags:# peer:TypedOp id:TypedOp from_scheduled:flags.0?TypedOp = ActionOp;
+noOp why:string = ActionOp;
 
 // Field extraction path
 paramNotFlag = ParamFlag;
