@@ -19,7 +19,6 @@ declare(strict_types=1);
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
 use danog\MadelineProto\FileRefExtractor\ActionOp;
-use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
 use danog\MadelineProto\FileRefExtractor\FieldExtractorOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use Webmozart\Assert\Assert;
@@ -67,13 +66,11 @@ final readonly class GetMessageOp implements ActionOp
         if ($this->fromScheduled !== null) {
             $extra['from_scheduled'] = $this->fromScheduled->build($tl);
         }
-        if ($tl->buildMode instanceof Ast) {
-            $tl->buildMode->addNode($tl, [
-                '_' => 'getMessageOp',
-                'peer' => $this->peer->build($tl),
-                'id' => $this->id->build($tl),
-                ...$extra,
-            ]);
-        }
+        $tl->buildMode->addNode($tl, [
+            '_' => 'getMessageOp',
+            'peer' => $this->peer->build($tl),
+            'id' => $this->id->build($tl),
+            ...$extra,
+        ]);
     }
 }

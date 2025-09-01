@@ -19,7 +19,6 @@ declare(strict_types=1);
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
 use danog\MadelineProto\FileRefExtractor\ActionOp;
-use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use Webmozart\Assert\Assert;
 
@@ -40,23 +39,19 @@ final readonly class CopyMethodCallOp implements ActionOp
     {
         Assert::eq($tl->position, $this->method, "Current constructor {$tl->position} does not match expected method {$this->method}");
         $method = $tl->tl->tl->getMethods()->findByMethod($this->method);
-        $out = $tl->buildMode;
-        if ($out instanceof Ast) {
-            $args = [];
-            foreach ($method['params'] as $arg) {
-                if (isset($arg['pow'])) {
-                    $args[$arg['name']] = new CopyOp([[$this->method, $arg['name'], CopyOp::FLAG_PASSTHROUGH]]);
-                } else {
-                    $args[$arg['name']] = new CopyOp([[$this->method, $arg['name']]]);
-                }
+        $args = [];
+        foreach ($method['params'] as $arg) {
+            if (isset($arg['pow'])) {
+                $args[$arg['name']] = new CopyOp([[$this->method, $arg['name'], CopyOp::FLAG_PASSTHROUGH]]);
+            } else {
+                $args[$arg['name']] = new CopyOp([[$this->method, $arg['name']]]);
             }
-            $result = new CallOp(
-                $this->method,
-                $args
-            );
-
-            $result->build($tl);
         }
+        $result = new CallOp(
+            $this->method,
+            $args
+        );
 
+        $result->build($tl);
     }
 }

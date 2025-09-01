@@ -85,7 +85,11 @@ abstract readonly class FieldExtractorOp implements TypedOp
             }
             $new[] = $newPart;
         }
-        return ['_' => $this instanceof ExtractFromParentOp ? 'pathParent': 'path', 'parts' => $new];
+        return [
+            '_' => 'path',
+            'extracted' => ['_' => $this instanceof ExtractFromParentOp ? 'pathExtractorParent': 'pathExtractor', 'parts' => $new],
+            'stored_param' => '',
+        ];
     }
     final public function getType(TLContext $tl): string
     {

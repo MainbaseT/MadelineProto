@@ -18,8 +18,6 @@ declare(strict_types=1);
 
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
-use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
-use danog\MadelineProto\FileRefExtractor\BuildMode\Flat;
 use danog\MadelineProto\FileRefExtractor\FieldExtractorOp;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use danog\MadelineProto\FileRefExtractor\TypedOp;
@@ -57,10 +55,7 @@ final readonly class ExtractFromParentOp extends FieldExtractorOp
 
     public function build(TLContext $tl): array
     {
-        if ($tl->buildMode instanceof Flat) {
-        } elseif ($tl->buildMode instanceof Ast) {
-            $tl->buildMode->setNeedsParent($this->path[0][0]);
-        }
+        $tl->buildMode->setNeedsParent($this->path[0][0]);
         return [
             '_' => 'typedOp',
             'type' => $this->getType($tl),

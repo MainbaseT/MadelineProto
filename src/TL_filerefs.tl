@@ -7,8 +7,8 @@ origin flags:# predicate:string is_constructor:flags.0?true action:ActionOp need
 typedOpArg key:string value:TypedOp = TypedOpArg;
 
 // Actions
-callOp method:string args:Vector<TypedOpArg> = ActionOp;
-getMessageOp flags:# peer:TypedOp id:TypedOp from_scheduled:flags.0?TypedOp = ActionOp;
+callOp method:string args:Vector<TypedOpArg> stored_constructor:string = ActionOp;
+getMessageOp flags:# peer:TypedOp id:TypedOp from_scheduled:flags.0?TypedOp stored_constructor:string = ActionOp;
 noOp why:string = ActionOp;
 
 // Field extraction path
@@ -19,8 +19,10 @@ paramIsFlagPassthrough = ParamFlag;
 
 pathPart flags:# constructor:string param:string flag:ParamFlag = PathPart;
 
-path parts:Vector<PathPart> = Path;
-pathParent parts:Vector<PathPart> = Path;
+pathExtractor parts:Vector<PathPart> = PathExtractor;
+pathExtractorParent parts:Vector<PathPart> = PathExtractor;
+
+path extracted:PathExtractor stored_param:string = Path;
 
 // Typed constructors, the type is specified to simplify codegen,
 // but isn't strictly necessary as it can be inferred from the TypedOpOp.

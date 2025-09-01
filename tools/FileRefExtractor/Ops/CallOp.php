@@ -19,8 +19,6 @@ declare(strict_types=1);
 namespace danog\MadelineProto\FileRefExtractor\Ops;
 
 use danog\MadelineProto\FileRefExtractor\ActionOp;
-use danog\MadelineProto\FileRefExtractor\BuildMode\Ast;
-use danog\MadelineProto\FileRefExtractor\BuildMode\Flat;
 use danog\MadelineProto\FileRefExtractor\TLContext;
 use danog\MadelineProto\FileRefExtractor\TypedOp;
 use Webmozart\Assert\Assert;
@@ -76,54 +74,10 @@ final readonly class CallOp implements ActionOp
             $types[$from] = $to->getType($tl);
         }
 
-        $out = $tl->buildMode;
-        if ($out instanceof Flat) {
-            /*
-            foreach ($out->backrefs as $cons => $type) {
-                $out->actionsPre[$cons] ??= [];
-                array_unshift($out->actionsPre[$cons], [
-                    '_' => 'pushContext',
-                    'ctx' => $out->contextName,
-                ]);
-
-                $out->actionsPost[$cons] ??= [];
-                array_push($out->actionsPost[$cons], [
-                    '_' => 'processContext',
-                    'ctx' => $out->contextName,
-                    'method' => $this->method,
-                    'args' => $final,
-                ]);
-                array_push($out->actionsPost[$cons], [
-                    '_' => 'popContext',
-                    'ctx' => $out->contextName,
-                ]);
-            }
-
-            $out->actionsPost[$cons][] = [
-                '_' => 'processContext',
-                'ctx' => $out->contextName,
-                'method' => $this->method,
-                'args' => $final,
-            ];
-            if ($hasBackref) {
-                $out->actionsPost[$cons][] = [
-                    '_' => 'deleteContextEntries',
-                    'ctx' => $out->contextName,
-                    'entries' => array_keys($final),
-                ];
-            } else {
-                $out->actionsPost[$cons][] = [
-                    '_' => 'popContext',
-                    'ctx' => $out->contextName,
-                ];
-            }*/
-        } else {
-            \assert($out instanceof Ast);
-            $out->addNode($tl, [
-                '_' => 'callOp',
-                'method' => $this->method,
-                'args' => $final,
-            ]);
-        }
+        $tl->buildMode->addNode($tl, [
+            '_' => 'callOp',
+            'method' => $this->method,
+            'args' => $final,
+        ]);
     }
 }
