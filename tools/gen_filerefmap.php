@@ -40,14 +40,11 @@ FileRefGenerator::generate(
     __DIR__.'/../src/TL_filerefs_db.tl',
 );
 
-foreach ($list as $layer) {
-    if ($layer < 186) {
-        continue;
-    }
-    FileRefGenerator::generate(
-        $layer,
-        __DIR__."/../schemas/TL_telegram_v$layer.tl",
-        __DIR__."/../schemas/TL_telegram_v{$layer}_file_ref_map.dat",
-        __DIR__."/../schemas/TL_telegram_v{$layer}_filerefs_db.tl",
-    );
-}
+copy(
+    __DIR__."/../src/TL_filerefs_db.tl",
+    __DIR__."/../schemas/TL_telegram_v{$last}_filerefs_db.tl"
+);
+copy(
+    __DIR__."/../src/file_ref_map.dat",
+    __DIR__."/../schemas/TL_telegram_v{$last}_file_ref_map.dat"
+);
