@@ -47,12 +47,13 @@ final class Ast implements BuildMode
     ) {
     }
 
-    public function getOutput(): string
+    public function write(string $dbFile, string $schemaFile): void
     {
         $schema = '';
         foreach ($this->outputSchema as $constructor => $params) {
             $schema .= self::stringifySchema($constructor, $params)."\n";
         }
+        file_put_contents($schemaFile, $schema);
         $value = ['_' => 'fileReferenceOrigins', 'db_schema' => $schema, 'ctxs' => $this->output];
         Magic::start(false);
 
@@ -61,8 +62,9 @@ final class Ast implements BuildMode
         $TL = new TL((new ReflectionClass(MTProto::class))->newInstanceWithoutConstructor());
         $TL->init($s);
         $serialized = $TL->serializeObject(['type' => 'FileReferenceOrigins'], $value, '');
-        //$valueDe = $TL->deserialize($serialized, ['type' => '', 'connection' => null, 'encrypted' => true]);
-        return $serialized;
+        $valueDe = $TL->deserialize($serialized, ['type' => '', 'connection' => null, 'encrypted' => true]);
+        Assert::true($value == $valueDe);
+        file_put_contents($dbFile, $serialized);
     }
 
     private static function stringifySchema(string $constructor, array $params): string
@@ -94,6 +96,7 @@ final class Ast implements BuildMode
             '_' => 'origin',
             'predicate' => $ctx->position,
             'is_constructor' => $ctx->isConstructor,
+            'parent_is_constructor' => false,
         ];
         if ($this->needsParent !== null) {
             $out['needs_parent'] = $this->needsParent;

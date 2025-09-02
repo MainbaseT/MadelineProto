@@ -158,8 +158,8 @@ $locations['storyItem'][] = new CallOp('stories.getStoriesByID', [
     'peer' => new GetInputPeerOp(new Path([['storyItem', 'from_id', Path::FLAG_IF_ABSENT_ABORT]])),
 ], 'fileSourceStory');
 
-$locations['messages.getSponsoredMessages'][] = new CopyMethodCallOp('messages.getSponsoredMessages', 'fileSourceSponsoredMessage');
-//$locations['messages.getSponsoredMessages'][] = new Noop('Do not store file references from sponsored messages');
+//$locations['messages.getSponsoredMessages'][] = new CopyMethodCallOp('messages.getSponsoredMessages', 'fileSourceSponsoredMessage');
+$locations['messages.getSponsoredMessages'][] = new Noop('Do not store file references from sponsored messages');
 
 $locations['channelAdminLogEvent'][] = new CallOp(
     'channels.getAdminLog',
@@ -606,10 +606,10 @@ foreach ($locations as $constructor => $ops) {
         $op->build(new TLContext($TL, $output, $constructor, $TL->isConstructor($constructor)));
     }
 }
-$tl = $output->getOutput();
 
-file_put_contents(
+$output->write(
     __DIR__.'/../src/file_ref_map.dat',
-    $tl
+    __DIR__.'/../src/TL_filerefs_db.tl',
 );
+
 echo("OK!\n".PHP_EOL);

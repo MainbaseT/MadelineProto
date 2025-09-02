@@ -56,7 +56,7 @@ final readonly class GetInputStickerSet implements FieldTransformationOp
                 'type' => 'InputStickerSet',
                 'op' => [
                     '_' => 'copyOp',
-                    'path' => $this->path->buildPath($tl, 'extractInputStickerSetFromStickerSetAndStore'),
+                    'from' => $this->path->buildPath($tl, 'extractInputStickerSetFromStickerSetAndStore'),
                 ],
             ];
         }
@@ -66,7 +66,7 @@ final readonly class GetInputStickerSet implements FieldTransformationOp
             'type' => $this->getType($tl),
             'op' => [
                 '_' => 'copyOp',
-                'path' => $this->path->buildPath($tl, 'extractInputStickerSetFromDocumentAttributesAndStore'),
+                'from' => $this->path->buildPath($tl, 'extractInputStickerSetFromDocumentAttributesAndStore'),
             ],
         ];
     }

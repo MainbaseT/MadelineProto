@@ -55,7 +55,7 @@ final readonly class GetInputChannelOp implements FieldTransformationOp
                 'type' => $this->getType($tl),
                 'op' => [
                     '_' => 'getInputChannelByIdOp',
-                    'path' => $this->path->buildPath($tl, 'extractAndStore'),
+                    'from' => $this->path->buildPath($tl, 'extractAndStore'),
                 ],
             ];
         }
@@ -65,7 +65,7 @@ final readonly class GetInputChannelOp implements FieldTransformationOp
                 'type' => $this->getType($tl),
                 'op' => [
                     '_' => 'getInputChannelByIdOp',
-                    'path' => $this->path->buildPath($tl, 'extractChannelIdFromInputChannelAndStore'),
+                    'from' => $this->path->buildPath($tl, 'extractChannelIdFromInputChannelAndStore'),
                 ],
             ];
         }
@@ -75,7 +75,7 @@ final readonly class GetInputChannelOp implements FieldTransformationOp
             'type' => $this->getType($tl),
             'op' => [
                 '_' => 'getInputChannelByIdOp',
-                'path' => $this->path->buildPath($tl, 'extractChannelIdFromChannelAndStore'),
+                'from' => $this->path->buildPath($tl, 'extractChannelIdFromChannelAndStore'),
             ],
         ];
     }

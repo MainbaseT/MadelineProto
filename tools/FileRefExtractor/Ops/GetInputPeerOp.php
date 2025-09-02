@@ -55,7 +55,7 @@ final readonly class GetInputPeerOp implements FieldTransformationOp
                 'type' => $this->getType($tl),
                 'op' => [
                     '_' => 'getInputPeerByIdOp',
-                    'path' => $this->path->buildPath($tl, 'extractPeerIdFromInputPeerAndStore'),
+                    'from' => $this->path->buildPath($tl, 'extractPeerIdFromInputPeerAndStore'),
                 ],
             ];
         }
@@ -66,7 +66,7 @@ final readonly class GetInputPeerOp implements FieldTransformationOp
             'type' => $this->getType($tl),
             'op' => [
                 '_' => 'getInputPeerByIdOp',
-                'path' => $this->path->buildPath($tl, 'extractPeerIdFromPeerAndStore'),
+                'from' => $this->path->buildPath($tl, 'extractPeerIdFromPeerAndStore'),
             ],
         ];
     }

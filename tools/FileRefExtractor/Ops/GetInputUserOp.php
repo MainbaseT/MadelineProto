@@ -55,7 +55,7 @@ final readonly class GetInputUserOp implements FieldTransformationOp
                 'type' => $this->getType($tl),
                 'op' => [
                     '_' => 'getInputUserByIdOp',
-                    'path' => $this->path->buildPath($tl, 'extractUserIdFromInputUserAndStore'),
+                    'from' => $this->path->buildPath($tl, 'extractUserIdFromInputUserAndStore'),
                 ],
             ];
         }
@@ -65,7 +65,7 @@ final readonly class GetInputUserOp implements FieldTransformationOp
                 'type' => $this->getType($tl),
                 'op' => [
                     '_' => 'getInputUserByIdOp',
-                    'path' => $this->path->buildPath($tl, 'extractAndStore'),
+                    'from' => $this->path->buildPath($tl, 'extractAndStore'),
                 ],
             ];
         }
@@ -75,7 +75,7 @@ final readonly class GetInputUserOp implements FieldTransformationOp
             'type' => $this->getType($tl),
             'op' => [
                 '_' => 'getInputUserByIdOp',
-                'path' => $this->path->buildPath($tl, 'extractUserIdFromUserAndStore'),
+                'from' => $this->path->buildPath($tl, 'extractUserIdFromUserAndStore'),
             ],
         ];
     }
