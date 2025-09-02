@@ -39,6 +39,7 @@ final class Ast implements BuildMode
     public ?string $curKey = null;
 
     private array $output = [];
+    private array $skipped = [];
     private ?string $needsParent = null;
 
     public function __construct(
@@ -67,6 +68,7 @@ final class Ast implements BuildMode
             'db_schema' => $dbSchema,
             'db_schema_json' => json_encode($dbSchemaJSON, flags: JSON_THROW_ON_ERROR),
             'ctxs' => $this->output,
+            'skipped' => $this->skipped,
         ];
         Magic::start(false);
 
@@ -76,6 +78,8 @@ final class Ast implements BuildMode
         $TL->init($s);
         $serialized = $TL->serializeObject(['type' => 'FileReferenceOrigins'], $value, '');
         $valueDe = $TL->deserialize($serialized, ['type' => '', 'connection' => null, 'encrypted' => true]);
+        file_put_contents('/tmp/a.json', json_encode($valueDe, flags: JSON_THROW_ON_ERROR));
+        file_put_contents('/tmp/b.json', json_encode($value, flags: JSON_THROW_ON_ERROR));
         Assert::true($value == $valueDe);
         file_put_contents($refMapFile, $serialized);
         file_put_contents($refMapFileJson, json_encode($valueDe, flags: JSON_THROW_ON_ERROR));
@@ -104,21 +108,11 @@ final class Ast implements BuildMode
     }
     public function addNode(TLContext $ctx, ?array $action = null, ?string $why = null): void
     {
-        $out = [
-            '_' => 'origin',
-            'predicate' => $ctx->position,
-            'is_constructor' => $ctx->isConstructor,
-            'parent_is_constructor' => false,
-        ];
-        if ($this->needsParent !== null) {
-            $out['needs_parent'] = $this->needsParent;
-            $out['parent_is_constructor'] = $ctx->tl->isConstructor($this->needsParent);
-        }
         if ($action !== null) {
             Assert::keyExists($action, 'stored_constructor');
 
             $constructor = $action['stored_constructor'];
-            $action['skipped_flags'] = [];
+            unset($action['stored_constructor']);
 
             $names = $this->storedNames;
             $flags = [];
@@ -133,6 +127,7 @@ final class Ast implements BuildMode
                     ...$names,
                 ];
             }
+            $skipped = [];
 
             if (isset($this->outputSchema[$constructor])) {
                 $existing = $this->outputSchema[$constructor];
@@ -141,7 +136,7 @@ final class Ast implements BuildMode
                         if (isset($flags[$name])) {
                             unset($flags[$name], $names[$name]);
                         } else {
-                            $action['skipped_flags'][]= $name;
+                            $skipped[]= $name;
                         }
                     }
                 }
@@ -166,14 +161,32 @@ final class Ast implements BuildMode
                 $this->outputSchema[$constructor] = $names;
             }
 
-            $out['action'] = $action;
+            $out = [
+                '_' => 'origin',
+                'predicate' => $ctx->position,
+                'is_constructor' => $ctx->isConstructor,
+                'action' => $action,
+                'stored_constructor' => $constructor,
+                'skipped_flags' => $skipped,
+                'parent_is_constructor' => false,
+            ];
+            if ($this->needsParent !== null) {
+                $out['needs_parent'] = $this->needsParent;
+                $out['parent_is_constructor'] = $ctx->tl->isConstructor($this->needsParent);
+            }
+            $this->output[] = $out;
 
             $this->storedFlags = 0;
             $this->stored = [];
             $this->storedNames = [];
             Assert::null($why);
         } elseif ($why !== null) {
-            $out['action'] = ['_' => 'noOp', 'why' => $why];
+            $this->skipped[] = [
+                '_' => 'skippedOrigin',
+                'why' => $why,
+                'predicate' => $ctx->position,
+                'is_constructor' => $ctx->isConstructor,
+            ];
             Assert::null($action);
             Assert::isEmpty($this->stored);
             Assert::isEmpty($this->storedNames);
@@ -181,7 +194,6 @@ final class Ast implements BuildMode
         } else {
             throw new AssertionError("Either 'action' or 'why' must be provided.");
         }
-        $this->output[] = $out;
         $this->needsParent = null;
         $this->curKey = null;
     }

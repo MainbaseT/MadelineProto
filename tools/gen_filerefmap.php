@@ -60,6 +60,20 @@ function generate(int $layer, string $schema) {
     );
 }
 
+if (isset($argv[1])) {
+    if (count($argv) < 4) {
+        die("Usage:\n{$argv[0]} <inputSchema> <output> <outputJson>\nOR\n{$argv[0]} (no args, uses schemas in schemas folder)\n");
+    }
+
+    FileRefGenerator::generate(
+        $layer,
+        $argv[1],
+        $argv[2],
+        $argv[3],
+    );
+    die;
+}
+
 $res = [];
 foreach (glob(getcwd().'/schemas/TL_telegram_*_file_ref_map.json') as $file) {
     preg_match("/telegram_v(\d+)/", $file, $matches);
@@ -77,5 +91,7 @@ for ($layer = $start; $layer <= $end; $layer++) {
     }
 }
 ksort($res);
+
+generate($last, $schema);
 
 file_put_contents(getcwd().'/schemas/list_file_ref_map.json', json_encode(array_keys($res)));
