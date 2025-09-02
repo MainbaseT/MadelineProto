@@ -1,5 +1,5 @@
 // Root
-fileReferenceOrigins ctxs:Vector<Origin> = FileReferenceOrigins;
+fileReferenceOrigins db_schema:string ctxs:Vector<Origin> = FileReferenceOrigins;
 
 origin flags:# predicate:string is_constructor:flags.0?true action:ActionOp needs_parent:flags.3?string parent_is_constructor:flags.4?true = origin;
 

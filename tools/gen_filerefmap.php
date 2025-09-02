@@ -37,7 +37,6 @@ $TL->init($schema);
 
 $TL = new TLWrapper($TL);
 $locations = [];
-
 Logger::log("Generating file reference map...");
 
 foreach ($TL->getConstructorsOfType('Message') as $constructor => $_) {
@@ -196,7 +195,7 @@ $locations['channels.getAdminLog'][] = new CallOp(
 
 foreach (['stories.createAlbum', 'stories.getAlbums', 'stories.updateAlbum'] as $m) {
     $locations[$m][] = new CallOp('stories.getAlbums', [
-        'peer' => new CopyOp([[$m, 'peer']]),
+        'peer' => new GetInputPeerOp(new Path([[$m, 'peer']])),
         'hash' => new PrimitiveLiteralOp('long', 0),
     ], 'fileSourceStoryAlbum');
 }
@@ -204,11 +203,11 @@ foreach (['stories.createAlbum', 'stories.getAlbums', 'stories.updateAlbum'] as 
 $locations['bots.getPreviewMedias'][] = new CopyMethodCallOp('bots.getPreviewMedias', 'fileSourceBotPreviewMedia');
 $locations['bots.getPreviewInfo'][] = new CopyMethodCallOp('bots.getPreviewInfo', 'fileSourceBotPreviewInfo');
 $locations['bots.addPreviewMedia'][] = new CallOp('bots.getPreviewInfo', [
-    'bot' => new CopyOp([['bots.addPreviewMedia', 'bot']]),
+    'bot' => new GetInputUserOp(new Path([['bots.addPreviewMedia', 'bot']])),
     'lang_code' => new CopyOp([['bots.addPreviewMedia', 'lang_code']]),
 ], 'fileSourceBotPreviewInfo');
 $locations['bots.editPreviewMedia'][] = new CallOp('bots.getPreviewInfo', [
-    'bot' => new CopyOp([['bots.editPreviewMedia', 'bot']]),
+    'bot' => new GetInputUserOp(new Path([['bots.editPreviewMedia', 'bot']])),
     'lang_code' => new CopyOp([['bots.editPreviewMedia', 'lang_code']]),
 ], 'fileSourceBotPreviewInfo');
 
@@ -249,7 +248,7 @@ foreach ($TL->getMethodsOfType('payments.StarsStatus') as $method => $_) {
     $locations['starsTransaction'][] = new CallOp(
         'payments.getStarsTransactionsByID',
         [
-            'peer' => new CopyOp(new Path([[$method, 'peer']], true)),
+            'peer' => new GetInputPeerOp(new Path([[$method, 'peer']], true)),
             ...($method === 'payments.getStarsSubscriptions' ? [] : ['ton' => new CopyOp(new Path([[$method, 'ton', Path::FLAG_PASSTHROUGH]], true))]),
             'id' => new ArrayOp(new ConstructorOp(
                 'inputStarsTransaction',
@@ -358,7 +357,7 @@ $locations['messages.availableReactions'][] = new CallOp(
 $locations['photo'][] = new CallOp(
     'photos.getUserPhotos',
     [
-        'user_id' => new CopyOp(new Path([['photos.getUserPhotos', 'user_id']], true)),
+        'user_id' => new GetInputUserOp(new Path([['photos.getUserPhotos', 'user_id']], true)),
         'offset' => new PrimitiveLiteralOp('int', -1),
         'max_id' => new CopyOp([['photo', 'id']]),
         'limit' => new PrimitiveLiteralOp('int', 1),
@@ -384,7 +383,7 @@ foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) 
     $locations[$method][] = new CallOp(
         'photos.getUserPhotos',
         [
-            'user_id' => new CopyOp(
+            'user_id' => new GetInputUserOp(new Path(
                 [[
                     $method,
                     'bot',
@@ -393,7 +392,7 @@ foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) 
                         []
                     ),
                 ]]
-            ),
+            )),
             'offset' => new PrimitiveLiteralOp('int', -1),
             'max_id' => new CopyOp([[$method, ''], ['photos.photo', 'photo'], ['photo', 'id']]),
             'limit' => new PrimitiveLiteralOp('int', 1),
@@ -404,8 +403,8 @@ foreach (['photos.updateProfilePhoto', 'photos.uploadProfilePhoto'] as $method) 
 $locations['photos.uploadContactProfilePhoto'][] = new CallOp(
     'photos.getUserPhotos',
     [
-        'user_id' => new CopyOp(
-            [['photos.uploadContactProfilePhoto', 'user_id']],
+        'user_id' => new GetInputUserOp(
+            new Path([['photos.uploadContactProfilePhoto', 'user_id']]),
         ),
         'offset' => new PrimitiveLiteralOp('int', -1),
         'max_id' => new CopyOp([['photos.uploadContactProfilePhoto', ''], ['photos.photo', 'photo'], ['photo', 'id']]),
@@ -495,21 +494,20 @@ $recurse = static function (Closure $onStackEnd, string $type, array &$stack, ar
     unset($stack[$pos]);
 };
 
-
 $pre = [
     'fileSourceMessage' => [
         'flags' => '#',
         'from_scheduled' => 'flags.0?true',
         'peer' => 'long',
-        'id' => 'int'
+        'id' => 'int',
     ],
     'fileSourceStarsTransaction' => [
         'flags' => '#',
-        'peer' => 'InputPeer',
+        'peer' => 'long',
         'id' => 'string',
         'refund' => 'flags.0?true',
         'ton' => 'flags.1?true',
-    ]
+    ],
 ];
 
 $validated = [];

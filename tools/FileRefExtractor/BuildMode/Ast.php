@@ -49,7 +49,11 @@ final class Ast implements BuildMode
 
     public function getOutput(): string
     {
-        $value = ['_' => 'fileReferenceOrigins', 'ctxs' => $this->output];
+        $schema = '';
+        foreach ($this->outputSchema as $constructor => $params) {
+            $schema .= self::stringifySchema($constructor, $params)."\n";
+        }
+        $value = ['_' => 'fileReferenceOrigins', 'db_schema' => $schema, 'ctxs' => $this->output];
         Magic::start(false);
 
         $s = new TLSchema;
@@ -65,10 +69,24 @@ final class Ast implements BuildMode
     {
         $paramsStr = "$constructor ";
         foreach ($params as $name => $type) {
+            Assert::notContains($type, 'InputPeer', "$constructor cannot contain InputPeer");
+            Assert::notContains($type, 'InputUser', "$constructor cannot contain InputUser");
+            Assert::notContains($type, 'InputChannel', "$constructor cannot contain InputChannel");
+            if ($constructor !== 'fileSourceBotApp'
+                && $constructor !== 'fileSourceTheme'
+                && $constructor !== 'fileSourceWallPaper'
+            ) {
+                Assert::notContains($name, 'access_hash', "$constructor cannot contain an access hash");
+            }
             $paramsStr .= "$name:$type ";
         }
         $paramsStr .= '= FileSource;';
-        return $paramsStr;
+
+        $clean = preg_replace(['/:bytes /', '/;/', '/#[a-f0-9]+ /', '/ [a-zA-Z0-9_]+\\:flags\\.[0-9]+\\?true/', '/[<]/', '/[>]/', '/  /', '/^ /', '/ $/', '/\\?bytes /', '/{/', '/}/'], [':string ', '', ' ', '', ' ', ' ', ' ', '', '', '?string ', '', ''], $paramsStr);
+        $id = hash('crc32b', $clean);
+        $id = str_pad($id, 8, '0', STR_PAD_LEFT);
+        $paramsStr = substr($paramsStr, \strlen($constructor)+1);
+        return "$constructor#$id $paramsStr";
     }
     public function addNode(TLContext $ctx, ?array $action = null, ?string $why = null): void
     {
@@ -98,7 +116,7 @@ final class Ast implements BuildMode
                 }
                 $names = [
                     'flags' => '#',
-                    ...$names
+                    ...$names,
                 ];
             }
 
@@ -131,7 +149,6 @@ final class Ast implements BuildMode
             } else {
                 $this->outputSchema[$constructor] = $names;
             }
-
 
             $this->storedFlags = 0;
             $this->stored = [];

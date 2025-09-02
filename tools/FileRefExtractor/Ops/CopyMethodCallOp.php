@@ -45,7 +45,13 @@ final readonly class CopyMethodCallOp implements ActionOp
             if (isset($arg['pow'])) {
                 $args[$arg['name']] = new CopyOp([[$this->method, $arg['name'], Path::FLAG_PASSTHROUGH]]);
             } else {
-                $args[$arg['name']] = new CopyOp([[$this->method, $arg['name']]]);
+                if ($arg['type'] === 'InputPeer') {
+                    $args[$arg['name']] = new GetInputPeerOp(new Path([[$this->method, $arg['name']]]));
+                } elseif ($arg['type'] === 'InputUser') {
+                    $args[$arg['name']] = new GetInputUserOp(new Path([[$this->method, $arg['name']]]));
+                } else {
+                    $args[$arg['name']] = new CopyOp([[$this->method, $arg['name']]]);
+                }
             }
         }
         $result = new CallOp(
