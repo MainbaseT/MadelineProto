@@ -90,7 +90,13 @@ final class Ast implements BuildMode
             $constructor = $action['stored_constructor'];
 
             $names = $this->storedNames;
+            $flags = [];
             if ($this->storedFlags) {
+                foreach ($names as $name => $type) {
+                    if (str_starts_with($type, 'flags.')) {
+                        $flags[$name] = $type;
+                    }
+                }
                 $names = [
                     'flags' => '#',
                     ...$names
@@ -98,23 +104,30 @@ final class Ast implements BuildMode
             }
 
             if (isset($this->outputSchema[$constructor])) {
-                foreach ($this->outputSchema[$constructor] as $name => $type) {
+                $existing = $this->outputSchema[$constructor];
+                foreach ($existing as $name => $type) {
+                    if (str_starts_with($type, 'flags.')) {
+                        if (isset($flags[$name])) {
+                            unset($flags[$name], $names[$name]);
+                        }
+                    }
+                }
+                if ($flags) {
+                    throw new AssertionError("Have leftover flags: ".implode(' ', $flags));
+                }
+                foreach ($existing as $name => $type) {
                     if (isset($names[$name])) {
                         if ($names[$name] === $type) {
                             unset($names[$name]);
                         } else {
                             throw new AssertionError("Type mismatch for $constructor.$name: have {$names[$name]}, need $type");
                         }
-                    } else if (str_starts_with($type, 'flags.')) {
-                        if ($this->storedFlags) {
-                            throw new AssertionError("Have conflicting flag $constructor.$name:$type; new schema is ".self::stringifySchema($constructor, $names));
-                        }
-                    } elseif ($name !== 'flags') {
+                    } elseif (!str_starts_with($type, 'flags.') && $name !== 'flags') {
                         throw new AssertionError("Missing pre-existing parameter $constructor.$name for $constructor");
                     }
                 }
                 foreach ($names as $name => $type) {
-                    throw new AssertionError("Leftover parameter $constructor.$name:$type for $constructor");
+                    throw new AssertionError("Leftover parameter $constructor.$name:$type for ".self::stringifySchema($constructor, $existing));
                 }
             } else {
                 $this->outputSchema[$constructor] = $names;

@@ -503,8 +503,10 @@ $pre = [
     ],
     'fileSourceStarsTransaction' => [
         'flags' => '#',
+        'peer' => 'InputPeer',
         'id' => 'string',
         'refund' => 'flags.0?true',
+        'ton' => 'flags.1?true',
     ]
 ];
 
