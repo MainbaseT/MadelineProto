@@ -47,7 +47,7 @@ final class Ast implements BuildMode
     ) {
     }
 
-    private static function crc(string $schema): string
+    public static function crc(string $schema): string
     {
         $clean = preg_replace(['/:bytes /', '/;/', '/#[a-f0-9]+ /', '/ [a-zA-Z0-9_]+\\:flags\\.[0-9]+\\?true/', '/[<]/', '/[>]/', '/  /', '/^ /', '/ $/', '/\\?bytes /', '/{/', '/}/'], [':string ', '', ' ', '', ' ', ' ', ' ', '', '', '?string ', '', ''], $schema);
         $id = hash('crc32b', $clean);
@@ -55,27 +55,8 @@ final class Ast implements BuildMode
         return $id;
     }
 
-    public function finalize(string $schemaFile, string $refMapFile, string $dbSchemaFile): void
+    public function finalize(string $refMapFile, string $dbSchemaFile): void
     {
-        $schema = explode("\n", file_get_contents($schemaFile));
-        foreach ($schema as &$line) {
-            $line = rtrim(trim($line), ';');
-            if (str_starts_with($line, '//') || !$line) {
-                continue;
-            }
-            $line = explode(" ", $line, 2);
-            $line[0] = preg_replace('/#.*/', '', $line[0]);
-            $line = implode(" ", $line);
-            $id = self::crc($line);
-
-            $line = explode(" ", $line, 2);
-            $line[0] .= "#$id";
-            $line = implode(" ", $line);
-            $line .= ';';
-        }
-        $schema = implode("\n", $schema);
-        file_put_contents($schemaFile, $schema);
-
         $dbSchema = '';
         foreach ($this->outputSchema as $constructor => $params) {
             $dbSchema .= self::stringifySchema($constructor, $params)."\n";
