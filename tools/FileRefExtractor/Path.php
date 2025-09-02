@@ -160,7 +160,7 @@ final readonly class Path
             if (isset($tl->buildMode->storedNames[$name])) {
                 throw new AssertionError("Need custom name (already have $name) for ".json_encode($this->path));
             }
-            $tl->buildMode->storedNames[$name] = true;
+            $tl->buildMode->storedNames[$name] = $type;
             $tl->buildMode->stored[$serialized] = [
                 'name' => $name,
                 'type' => $type,

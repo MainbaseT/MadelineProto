@@ -58,7 +58,7 @@ final readonly class GetMessageOp implements ActionOp
 
     public function build(TLContext $tl): void
     {
-        Assert::eq($this->peer->getType($tl), 'Peer');
+        Assert::eq($this->peer->getType($tl), 'InputPeer');
         Assert::eq($this->id->getType($tl), 'int');
         if ($this->fromScheduled !== null) {
             Assert::eq($this->fromScheduled->getType($tl), 'true');

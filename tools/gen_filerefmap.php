@@ -43,7 +43,7 @@ foreach ($TL->getConstructorsOfType('Message') as $constructor => $_) {
         continue;
     }
     $locations[$constructor][] = new GetMessageOp(
-        new CopyOp([[$constructor, 'peer_id']]),
+        new GetInputPeerOp(new Path([[$constructor, 'peer_id']])),
         new CopyOp([[$constructor, 'id']]),
         $constructor === 'message' ? new CopyOp([[$constructor, 'from_scheduled', Path::FLAG_PASSTHROUGH]]) : null,
         'fileSourceMessage',
@@ -493,9 +493,19 @@ $recurse = static function (Closure $onStackEnd, string $type, array &$stack, ar
     unset($stack[$pos]);
 };
 
+
+$pre = [
+    'fileSourceMessage' => [
+        'flags' => '#',
+        'from_scheduled' => 'flags.0?true',
+        'peer' => 'long',
+        'id' => 'int'
+    ]
+];
+
 $validated = [];
 
-$tmp = new Ast(allowBackrefs: true, allowUnpacking: true);
+$tmp = new Ast(allowBackrefs: true, allowUnpacking: true, outputSchema: $pre);
 foreach (['Document' => 'document', 'Photo' => 'photo'] as $type => $constructor) {
     $stack = [[$constructor, 'file_reference']];
     $stackTypes = [$type => 1];
@@ -583,7 +593,7 @@ if ($diff) {
     throw new AssertionError("Leftover ops!");
 }
 
-$output = new Ast(allowBackrefs: true, allowUnpacking: false);
+$output = new Ast(allowBackrefs: true, allowUnpacking: false, outputSchema: $pre);
 foreach ($locations as $constructor => $ops) {
     foreach ($ops as $idx => $op) {
         $op->build(new TLContext($TL, $output, $constructor, $TL->isConstructor($constructor)));

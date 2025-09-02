@@ -32,19 +32,19 @@ final class Ast implements BuildMode
 {
     /** @var array<string, array{name: string, type: string}> */
     public array $stored = [];
-    /** @var array<string, true> */
+    /** @var array<string, string> */
     public array $storedNames = [];
     public int $storedFlags = 0;
 
     public ?string $curKey = null;
 
     private array $output = [];
-    private array $outputSchema = [];
     private ?string $needsParent = null;
 
     public function __construct(
         public readonly bool $allowBackrefs,
         public readonly bool $allowUnpacking,
+        private array $outputSchema = []
     ) {
     }
 
@@ -62,6 +62,15 @@ final class Ast implements BuildMode
         return $serialized;
     }
 
+    private static function stringifySchema(string $constructor, array $params): string
+    {
+        $paramsStr = "$constructor ";
+        foreach ($params as $name => $type) {
+            $paramsStr .= "$name:$type ";
+        }
+        $paramsStr .= '= FileSource;';
+        return $paramsStr;
+    }
     public function addNode(TLContext $ctx, ?array $action = null, ?string $why = null): void
     {
         $out = [
@@ -80,24 +89,38 @@ final class Ast implements BuildMode
 
             $constructor = $action['stored_constructor'];
 
-            $paramsStr = $this->storedFlags ? "$constructor flags:# " : "$constructor ";
-            foreach ($this->stored as $param) {
-                $paramsStr .= "{$param['name']}:{$param['type']} ";
+            $names = $this->storedNames;
+            if ($this->storedFlags) {
+                $names['flags'] = '#';
             }
-            $paramsStr .= '= FileSource;';
+
+            if (isset($this->outputSchema[$constructor])) {
+                foreach ($this->outputSchema[$constructor] as $name => $type) {
+                    if (isset($names[$name])) {
+                        if ($names[$name] === $type) {
+                            unset($names[$name]);
+                        } else {
+                            throw new AssertionError("Type mismatch for $constructor.$name: have {$names[$name]}, need $type");
+                        }
+                    } else if (str_starts_with($type, 'flags.')) {
+                        if ($this->storedFlags) {
+                            throw new AssertionError("Have conflicting flag $constructor.$name:$type; new schema is ".self::stringifySchema($constructor, $names));
+                        }
+                    } elseif ($name !== 'flags') {
+                        throw new AssertionError("Missing pre-existing parameter $constructor.$name for $constructor");
+                    }
+                }
+                foreach ($names as $name => $type) {
+                    throw new AssertionError("Leftover parameter $constructor.$name:$type for $constructor");
+                }
+            } else {
+                $this->outputSchema[$constructor] = $names;
+            }
+
 
             $this->storedFlags = 0;
             $this->stored = [];
             $this->storedNames = [];
-
-            if (isset($this->outputSchema[$constructor])) {
-                if ($this->outputSchema[$constructor] !== $paramsStr) {
-                    echo("Existing schema for $constructor ({$this->outputSchema[$constructor]}) does not match newly generated schema $paramsStr\n");
-                }
-            } else {
-                $this->outputSchema[$constructor] = $paramsStr;
-            }
-
             Assert::null($why);
         } elseif ($why !== null) {
             $out['action'] = ['_' => 'noOp', 'why' => $why];
