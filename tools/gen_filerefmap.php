@@ -607,7 +607,8 @@ foreach ($locations as $constructor => $ops) {
     }
 }
 
-$output->write(
+$output->finalize(
+    __DIR__.'/../src/TL_filerefs.tl',
     __DIR__.'/../src/file_ref_map.dat',
     __DIR__.'/../src/TL_filerefs_db.tl',
 );

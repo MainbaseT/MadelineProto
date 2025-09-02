@@ -47,14 +47,38 @@ final class Ast implements BuildMode
     ) {
     }
 
-    public function write(string $dbFile, string $schemaFile): void
+    private static function crc(string $schema): string
     {
-        $schema = '';
-        foreach ($this->outputSchema as $constructor => $params) {
-            $schema .= self::stringifySchema($constructor, $params)."\n";
+        $clean = preg_replace(['/:bytes /', '/;/', '/#[a-f0-9]+ /', '/ [a-zA-Z0-9_]+\\:flags\\.[0-9]+\\?true/', '/[<]/', '/[>]/', '/  /', '/^ /', '/ $/', '/\\?bytes /', '/{/', '/}/'], [':string ', '', ' ', '', ' ', ' ', ' ', '', '', '?string ', '', ''], $schema);
+        $id = hash('crc32b', $clean);
+        $id = str_pad($id, 8, '0', STR_PAD_LEFT);
+        return $id;
+    }
+
+    public function finalize(string $schemaFile, string $refMapFile, string $dbSchemaFile): void
+    {
+        $schema = explode("\n", file_get_contents($schemaFile));
+        foreach ($schema as &$line) {
+            $line = trim($line);
+            if (str_starts_with($line, '//') || !$line) {
+                continue;
+            }
+            $id = self::crc($line);
+
+            $line = explode(" ", $line, 2);
+            $line[0] .= "#$id";
+            $line = implode(" ", $line);
+            $line .= ';';
         }
+        $schema = implode("\n", $schema);
         file_put_contents($schemaFile, $schema);
-        $value = ['_' => 'fileReferenceOrigins', 'db_schema' => $schema, 'ctxs' => $this->output];
+
+        $dbSchema = '';
+        foreach ($this->outputSchema as $constructor => $params) {
+            $dbSchema .= self::stringifySchema($constructor, $params)."\n";
+        }
+        file_put_contents($dbSchemaFile, $dbSchema);
+        $value = ['_' => 'fileReferenceOrigins', 'db_schema' => $dbSchema, 'ctxs' => $this->output];
         Magic::start(false);
 
         $s = new TLSchema;
@@ -64,7 +88,7 @@ final class Ast implements BuildMode
         $serialized = $TL->serializeObject(['type' => 'FileReferenceOrigins'], $value, '');
         $valueDe = $TL->deserialize($serialized, ['type' => '', 'connection' => null, 'encrypted' => true]);
         Assert::true($value == $valueDe);
-        file_put_contents($dbFile, $serialized);
+        file_put_contents($refMapFile, $serialized);
     }
 
     private static function stringifySchema(string $constructor, array $params): string
@@ -84,9 +108,7 @@ final class Ast implements BuildMode
         }
         $paramsStr .= '= FileSource;';
 
-        $clean = preg_replace(['/:bytes /', '/;/', '/#[a-f0-9]+ /', '/ [a-zA-Z0-9_]+\\:flags\\.[0-9]+\\?true/', '/[<]/', '/[>]/', '/  /', '/^ /', '/ $/', '/\\?bytes /', '/{/', '/}/'], [':string ', '', ' ', '', ' ', ' ', ' ', '', '', '?string ', '', ''], $paramsStr);
-        $id = hash('crc32b', $clean);
-        $id = str_pad($id, 8, '0', STR_PAD_LEFT);
+        $id = self::crc($paramsStr);
         $paramsStr = substr($paramsStr, \strlen($constructor)+1);
         return "$constructor#$id $paramsStr";
     }
