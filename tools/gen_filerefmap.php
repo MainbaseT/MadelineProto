@@ -34,42 +34,48 @@ $list = file_get_contents($list);
 $list = json_decode($list, true);
 $last = end($list);
 
-FileRefGenerator::generate(
-    $last,
-    __DIR__."/../src/TL_telegram_v$last.tl",
-    __DIR__.'/../src/file_ref_map.dat',
-    __DIR__.'/../src/file_ref_map.json',
-);
+function generate(int $layer, string $schema) {
+    FileRefGenerator::generate(
+        $layer,
+        __DIR__."/../schemas/TL_telegram_v$layer.tl",
+        __DIR__.'/../src/file_ref_map.dat',
+        __DIR__.'/../src/file_ref_map.json',
+    );
 
-copy(
-    __DIR__."/../src/TL_file_ref_map_schema.tl",
-    __DIR__."/../schemas/TL_telegram_v{$last}_file_ref_map_schema.tl"
-);
+    copy(
+        __DIR__."/../src/TL_file_ref_map_schema.tl",
+        __DIR__."/../schemas/TL_telegram_v{$layer}_file_ref_map_schema.tl"
+    );
 
-$TL = new TL(null);
-file_put_contents(__DIR__."/../schemas/TL_telegram_v{$last}_file_ref_map_schema.json", json_encode($TL->toJson($schema), flags: JSON_THROW_ON_ERROR));
+    $TL = new TL(null);
+    file_put_contents(__DIR__."/../schemas/TL_telegram_v{$layer}_file_ref_map_schema.json", json_encode($TL->toJson($schema), flags: JSON_THROW_ON_ERROR));
 
-copy(
-    __DIR__."/../src/file_ref_map.dat",
-    __DIR__."/../schemas/TL_telegram_v{$last}_file_ref_map.dat"
-);
-copy(
-    __DIR__."/../src/file_ref_map.json",
-    __DIR__."/../schemas/TL_telegram_v{$last}_file_ref_map.json"
-);
+    copy(
+        __DIR__."/../src/file_ref_map.dat",
+        __DIR__."/../schemas/TL_telegram_v{$layer}_file_ref_map.dat"
+    );
+    copy(
+        __DIR__."/../src/file_ref_map.json",
+        __DIR__."/../schemas/TL_telegram_v{$layer}_file_ref_map.json"
+    );
+}
 
 $res = [];
 foreach (glob(getcwd().'/schemas/TL_telegram_*_file_ref_map.json') as $file) {
     preg_match("/telegram_v(\d+)/", $file, $matches);
-    $res[$matches[1]] = $file;
+    $res[$matches[1]] = true;
 }
 ksort($res);
-file_put_contents(getcwd().'/schemas/list_file_ref_map.json', json_encode(array_keys($res)));
 
-$start = array_key_first($res);
-foreach ($res as $layer => $_) {
-    if ($layer !== $start) {
-        throw new AssertionError("Missing fileref file for layer $layer");
+$start = min(213, array_key_first($res));
+$end = max(array_key_last($res), $last);
+
+for ($layer = $start; $layer <= $end; $layer++) {
+    if (!isset($res[$layer])) {
+        generate($layer, $schema);
+        $res[$layer] = true;
     }
-    $start++;
 }
+ksort($res);
+
+file_put_contents(getcwd().'/schemas/list_file_ref_map.json', json_encode(array_keys($res)));
