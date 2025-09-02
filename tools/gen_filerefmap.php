@@ -34,7 +34,8 @@ $list = file_get_contents($list);
 $list = json_decode($list, true);
 $last = end($list);
 
-function generate(int $layer, string $schema) {
+function generate(int $layer, string $schema): void
+{
     FileRefGenerator::generate(
         $layer,
         __DIR__."/../schemas/TL_telegram_v$layer.tl",
