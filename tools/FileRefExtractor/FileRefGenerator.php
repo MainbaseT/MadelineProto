@@ -38,6 +38,7 @@ use danog\MadelineProto\Logger;
 use danog\MadelineProto\Magic;
 use danog\MadelineProto\Settings\TLSchema;
 use danog\MadelineProto\TL\TL;
+use Webmozart\Assert\Assert;
 
 final class FileRefGenerator
 {
@@ -446,8 +447,48 @@ final class FileRefGenerator
 
         $validated = [];
 
+        $inputCons = [
+            'inputPhoto' => ['id', 'file_reference'],
+            'inputDocument' => ['id', 'file_reference'],
+            'inputDocumentFileLocation' => ['id', 'file_reference'],
+            'inputPhotoFileLocation' => ['id', 'file_reference'],
+
+            // Legacy
+            'inputFileLocation' => false,
+            'inputPhotoLegacyFileLocation' => false,
+        ];
+        $outputCons = [
+            'document' => ['id', 'file_reference'],
+            'photo' => ['id', 'file_reference']
+        ];
+        foreach ($TL->tl->getConstructors()->by_id as $constructor) {
+            foreach ($constructor['params'] as $param) {
+                if ($param['name'] === 'file_reference') {
+                    if (isset($inputCons[$constructor['predicate']])) {
+                        if ($inputCons[$constructor['predicate']] === false) {
+                            continue 2;
+                        }
+                        [$id, $fileref] = $inputCons[$constructor['predicate']];
+                        $params = array_fill_keys(array_column($constructor['params'], 'name'), null);
+                        Assert::keyExists($params, $id);
+                        Assert::keyExists($params, $fileref);
+                        continue 2;
+                    }
+                    if (isset($outputCons[$constructor['predicate']])) {
+                        [$id, $fileref] = $outputCons[$constructor['predicate']];
+                        $params = array_fill_keys(array_column($constructor['params'], 'name'), null);
+                        Assert::keyExists($params, $id);
+                        Assert::keyExists($params, $fileref);
+                        continue 2;
+                    }
+                    throw new AssertionError("Have file_reference for {$constructor['predicate']} but not used");
+                }
+            }
+        }
+
         $tmp = new Ast(allowUnpacking: true, outputSchema: $pre);
-        foreach (['Document' => 'document', 'Photo' => 'photo'] as $type => $constructor) {
+        foreach ($outputCons as $constructor => $_) {
+            $type = ucfirst($constructor);
             $stack = [[$constructor, 'file_reference']];
             $stackTypes = [$type => 1];
             $recurse(
