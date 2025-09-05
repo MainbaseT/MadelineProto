@@ -49,7 +49,7 @@ function generate(int $layer, string $schema): void
     );
 
     $TL = new TL(null);
-    file_put_contents(__DIR__."/../schemas/TL_telegram_v{$layer}_file_ref_map_schema.json", json_encode($TL->toJson($schema), flags: JSON_THROW_ON_ERROR));
+    file_put_contents(__DIR__."/../schemas/TL_telegram_v{$layer}_file_ref_map_schema.json", json_encode($TL->toJson($schema), flags: JSON_THROW_ON_ERROR|JSON_PRETTY_PRINT));
 
     copy(
         __DIR__."/../src/file_ref_map.dat",
