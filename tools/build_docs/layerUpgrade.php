@@ -16,6 +16,9 @@ function layerUpgrade(int $layer): void
         if (basename($file) === 'TL_file_ref_map_schema.tl') {
             continue;
         }
+        if (basename($file) === 'TL_file_ref_map_schema.json') {
+            continue;
+        }
         unlink($file);
     }
     foreach (['TL_mtproto_v1', "TL_telegram_v$layer", 'TL_secret'] as $schema) {

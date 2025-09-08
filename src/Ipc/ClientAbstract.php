@@ -87,6 +87,7 @@ abstract class ClientAbstract
                     Logger::log("Got exception while receiving in IPC client: $e");
                 }
                 if (!$payload) {
+                    Logger::log("Disconnected from IPC server!");
                     break;
                 }
                 [$id, $payload] = $payload;
