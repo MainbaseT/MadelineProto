@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use danog\MadelineProto\API;
+use danog\MadelineProto\Exception;
 use danog\MadelineProto\Logger;
 use danog\MadelineProto\PTSException;
 use danog\MadelineProto\RPCErrorException;
@@ -61,6 +62,11 @@ $res = '';
 $settings = new Settings;
 $settings->setSchema($schema);
 $settings->getLogger()->setLevel(Logger::ULTRA_VERBOSE);
+
+$unauthed = new \danog\MadelineProto\API('fuzz_unauth.madeline');
+$unauthed->updateSettings($settings);
+Assert::false($unauthed->getSelf(), "fuzz_unauth.madeline is authed!");
+$unauthed->restart();
 
 echo "Bot login:".PHP_EOL;
 $bot = new \danog\MadelineProto\API('fuzz_bot.madeline');
@@ -138,6 +144,17 @@ $methods = [];
 
 foreach ($layer['methods']->by_id as $constructor) {
     $name = $constructor['method'];
+    if (strtolower($name) === 'account.deleteaccount'
+        || !str_contains($name, '.')) {
+        continue;
+    }
+    $methods["unauthed $name"]= async(static function () use ($unauthed, $name, &$methods): void {
+        try {
+            call($unauthed, $name);
+        } catch (RPCErrorException|PTSException|Exception) {
+        }
+        unset($methods["unauthed $name"]);
+    });
     if (strtolower($name) === 'account.deleteaccount'
         || strtolower($name) === 'auth.logout'
         || $name === 'auth.resetAuthorizations'

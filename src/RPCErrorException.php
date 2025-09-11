@@ -50,7 +50,6 @@ class RPCErrorException extends \Exception
         'USER_DEACTIVATED_BAN' => true,
         'INPUT_METHOD_INVALID' => true,
         'INPUT_FETCH_ERROR' => true,
-        'AUTH_KEY_UNREGISTERED' => true,
         'SESSION_REVOKED' => true,
         'USER_DEACTIVATED' => true,
         'RPC_SEND_FAIL' => true,

@@ -1603,6 +1603,9 @@ final class MTProto implements TLCallback, LoggerGetter, SettingsGetter
      */
     public function isSelfBot(): bool
     {
+        if ($this->loginState->getState()->state !== API::LOGGED_IN) {
+            throw new Exception('Not logged in!');
+        }
         return $this->authorization['user']['bot'];
     }
     /**
