@@ -104,7 +104,6 @@ class MyEventHandler extends SimpleEventHandler
      */
     public function onStart(): void
     {
-        $this->account->updateUsername(username: 'test');
         $this->logger("The bot was started!");
         $this->logger($this->getFullInfo('MadelineProto'));
 
