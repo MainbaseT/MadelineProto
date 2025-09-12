@@ -6,6 +6,7 @@ use danog\MadelineProto\API;
 use danog\MadelineProto\Logger;
 use danog\MadelineProto\Magic;
 use danog\MadelineProto\PTSException;
+use danog\MadelineProto\RPCError\BusinessConnectionNotAllowedError;
 use danog\MadelineProto\RPCErrorException;
 use danog\MadelineProto\Settings;
 use danog\MadelineProto\Settings\Logger as SettingsLogger;
@@ -69,10 +70,11 @@ try {
 }
 Assert::true(preg_match('/^[a-zA-Z0-9_-]*$/', $auth) === 1, 'TELERPC_AUTH_TOKEN can only contain a-z, A-Z, 0-9, _ and -');
 
+$client = HttpClientBuilder::buildDefault();
 if ($auth) {
     $res = json_decode(
         (
-            HttpClientBuilder::buildDefault()
+            $client
                 ->request(new Request('https://report-rpc-error.madelineproto.xyz/?auth='.$auth.'&cleanup=1'))
         )->getBody()->buffer(),
         true,
@@ -205,10 +207,24 @@ foreach ($layer['methods']->by_id as $constructor) {
         }
         unset($methods["user $name"]);
     });
-    $methods["business $name"] = async(static function () use ($bot, $name, $cId, &$methods): void {
+    $methods["business $name"] = async(static function () use ($bot, $name, $cId, $client, $auth, &$methods): void {
+        $ok = true;
         try {
             call($bot, $name, ['businessConnectionId' => $cId]);
-        } catch (RPCErrorException|PTSException) {
+        } catch (PTSException|BusinessConnectionNotAllowedError) {
+            $ok = false;
+        } catch (RPCErrorException $e) {
+            echo "Got ".$e->getMessage()." for business $name".PHP_EOL;
+        }
+
+        if ($ok && $auth) {
+            $res = json_decode(
+                (
+                    $client
+                        ->request(new Request('https://report-rpc-error.madelineproto.xyz/?auth='.$auth.'&error=BUSINESS_CONNECTION_INVALID&method='.urlencode($name).'&code=400'))
+                )->getBody()->buffer(),
+                true,
+            );
         }
         unset($methods["business $name"]);
     });
