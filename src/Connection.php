@@ -401,7 +401,7 @@ final class Connection
             || $method === 'stories.editStory'
         ) {
             if ($method === 'messages.uploadMedia') {
-                if (!isset($arguments['peer']) && !$this->API->isSelfBot()) {
+                if (!isset($arguments['peer']) && $this->API->getSelf() && !$this->API->isSelfBot()) {
                     $arguments['peer'] = 'me';
                 }
             }

@@ -151,7 +151,7 @@ foreach ($layer['methods']->by_id as $constructor) {
     $methods["unauthed $name"]= async(static function () use ($unauthed, $name, &$methods): void {
         try {
             call($unauthed, $name);
-        } catch (RPCErrorException|PTSException|Exception) {
+        } catch (RPCErrorException|PTSException) {
         }
         unset($methods["unauthed $name"]);
     });
