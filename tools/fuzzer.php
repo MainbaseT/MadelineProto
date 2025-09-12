@@ -62,9 +62,6 @@ $layer = getTL($schema);
 $res = '';
 
 Magic::start(true);
-RPCErrorException::$errorMethodMap = [];
-RPCErrorException::$descriptions = [];
-
 $auth = '';
 try {
     $auth = getenv('TELERPC_AUTH_TOKEN') ?: '';

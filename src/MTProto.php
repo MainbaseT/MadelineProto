@@ -1397,6 +1397,11 @@ final class MTProto implements TLCallback, LoggerGetter, SettingsGetter
             $this->setupLogger();
         }
 
+        if ($this->settings->getSchema()->getFuzzMode()) {
+            RPCErrorException::$errorMethodMap = [];
+            RPCErrorException::$descriptions = [];
+        }
+
         if ($this->settings->getDb()->hasChanged()) {
             $this->logger->logger("The database settings have changed!", Logger::WARNING);
             $this->cleanupProperties();
