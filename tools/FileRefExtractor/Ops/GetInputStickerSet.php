@@ -32,6 +32,9 @@ final readonly class GetInputStickerSet implements FieldTransformationOp
 
     public function normalize(array $stack, string $current, bool $ignoreFlag): ?\danog\MadelineProto\FileRefExtractor\TypedOp
     {
+        if ($ignoreFlag) {
+            return null;
+        }
         $path = $this->path->normalize($stack, $current, $ignoreFlag);
         if ($path === null) {
             return null;

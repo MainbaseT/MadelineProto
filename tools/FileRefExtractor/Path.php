@@ -165,6 +165,11 @@ final readonly class Path
                 $type = "flags.$flag?$type";
             }
             $name = $tl->buildMode->curKey;
+            if (\in_array($this->path[0][0], ['users.getSavedMusic', 'users.getSavedMusicByID'], true)
+                && $this->path[0][1] === 'id'
+            ) {
+                $name = 'user_id';
+            }
             Assert::notNull($name);
             if (isset($tl->buildMode->stored[$name])) {
                 throw new AssertionError("Need custom name (already have $name) for ".json_encode($this->path));

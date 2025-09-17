@@ -217,6 +217,28 @@ final class FileRefGenerator
         );
         $locations['help.getPremiumPromo'][] = new CopyMethodCallOp('help.getPremiumPromo', 'fileSourcePremiumPromo');
 
+        $locations['help.getAppUpdate'][] = new Noop("Don't handle file references from ephemeral app update info");
+        $locations['help.getRecentMeUrls'][] = new Noop("Don't handle file references from recent t.me URLs");
+
+        $stickerMethods = [
+            'messages.getAttachedStickers' => true,
+        ];
+        foreach ([
+            'messages.FeaturedStickers',
+            'messages.StickerSet',
+            'messages.ArchivedStickers',
+            'messages.Stickers',
+            'messages.StickerSetInstallResult',
+            'messages.FoundStickerSets',
+            'messages.MyStickers',
+            'messages.FavedStickers',
+            'messages.FoundStickers',
+        ] as $stickerType) {
+            foreach ($TL->getMethodsOfType($stickerType) as $method => $_) {
+                $stickerMethods[$method] = true;
+            }
+        }
+
         $starMethods = [];
         foreach ($TL->getMethodsOfType('payments.StarsStatus') as $method => $_) {
             $starMethods[$method] = true;
@@ -370,12 +392,39 @@ final class FileRefGenerator
 
         $locations['messages.getWebPagePreview'][] = new Noop("No locations are added for the method call, as it doesn't use persistent IDs as input; the location is instead extracted from the persistent IDs in the returned WebPage object");
 
+        foreach (['users.getSavedMusic', 'users.getSavedMusicByID'] as $m) {
+            $locations['document'][] = new CallOp(
+                'users.getSavedMusicByID',
+                [
+                    'id' => new GetInputUserOp(new Path([[$m, 'id']], true)),
+                    'documents' => new ArrayOp(
+                        new ConstructorOp(
+                            'inputDocument',
+                            [
+                                'id' => new CopyOp([['document', 'id']]),
+                                'access_hash' => new CopyOp([['document', 'access_hash']]),
+                                'file_reference' => new PrimitiveLiteralOp('bytes', ''),
+                            ],
+                        ),
+                    ),
+                ],
+                'fileSourceSavedMusic'
+            );
+        }
+
         // Ignore these for now
-        foreach (['payments.ResaleStarGifts', 'payments.StarGiftUpgradePreview', 'StarGift'] as $type) {
+        foreach (['payments.ResaleStarGifts', 'payments.StarGiftUpgradePreview', 'StarGift', 'StarGiftCollection', 'payments.StarGiftCollections'] as $type) {
             foreach ($TL->getConstructorsOfType($type) as $constructor => $_) {
+                if ($constructor === 'payments.starGiftCollectionsNotModified') {
+                    continue;
+                }
                 $locations[$constructor][] = new Noop('Contexts for star gifts are not yet implemented');
             }
         }
+
+        $locations['messages.getCustomEmojiDocuments'][] = new Noop("Do not store file references in this context");
+
+        $locations['account.uploadTheme'][] = new Noop('A freshly uploaded theme file will obtain a context only once it is created via account.createTheme');
 
         $recurse = static function (Closure $onStackEnd, string $type, array &$stack, array &$stackTypes) use ($TL, &$recurse): void {
             if ($type === 'Update' || $type === 'Updates') {
@@ -504,9 +553,10 @@ final class FileRefGenerator
             $stack = [[$constructor, 'file_reference']];
             $stackTypes = [$type => 1];
             $recurse(
-                static function (array $stack) use ($locations, $TL, $tmp, &$validated, $storyMethods, $starMethods): void {
+                static function (array $stack) use ($locations, $TL, $tmp, &$validated, $storyMethods, $starMethods, $stickerMethods): void {
                     $slice = [];
                     $hadAny = false;
+                    $hadAnyWithNoFlags = false;
                     $skippedDueToFlags = [];
                     $top = end($stack)[0];
                     for ($x = \count($stack)-1; $x >= 0; $x--) {
@@ -525,11 +575,15 @@ final class FileRefGenerator
                                 $skippedDueToFlags []= $op;
                                 continue;
                             }
+                            $hadAnyWithNoFlags = true;
                         }
                         $slice[] = $pair;
                     }
                     if (!$hadAny) {
                         throw new AssertionError("Uncovered path: " . json_encode($stack));
+                    }
+                    if ($hadAnyWithNoFlags) {
+                        return;
                     }
                     if ($skippedDueToFlags) {
                         if ($top === 'updateStory'
@@ -545,6 +599,11 @@ final class FileRefGenerator
                             || $top === 'channels.getFullChannel'
                             || $top === 'users.getFullUser'
                             // The three above are related to botInfo, ignore as we already store a context for the chat info.
+
+                            || isset($stickerMethods[$top])
+                            || $top === 'messages.getRecentStickers'
+                            || $top === 'updateNewStickerSet'
+                            // The above are covered by the GetInputStickerSet document context
                         ) {
                             return;
                         }

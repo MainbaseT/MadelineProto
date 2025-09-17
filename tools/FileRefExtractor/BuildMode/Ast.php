@@ -143,6 +143,7 @@ final class Ast implements BuildMode
             if ($constructor !== 'fileSourceBotApp'
                 && $constructor !== 'fileSourceTheme'
                 && $constructor !== 'fileSourceWallPaper'
+                && $constructor !== 'fileSourceSavedMusic'
             ) {
                 Assert::notContains($name, 'access_hash', "$constructor cannot contain an access hash");
             }
