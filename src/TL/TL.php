@@ -616,6 +616,8 @@ final class TL implements TLInterface
         }
         if ($type['type'] === 'InputMessage' && !\is_array($object)) {
             $object = ['_' => 'inputMessageID', 'id' => $object];
+        } elseif ($type['type'] === 'TextWithEntities' && !\is_array($object)) {
+            $object = ['_' => 'textWithEntities', 'text' => $object];
         } elseif (isset($this->typeMismatch[$type['type']]) && (!\is_array($object) || isset($object['_']) && $this->constructors->findByPredicate($object['_'])['type'] !== $type['type'])) {
             $object = $this->typeMismatch[$type['type']]($object);
             if (!isset($object['_'])) {
