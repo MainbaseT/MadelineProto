@@ -259,6 +259,7 @@ $user->account->updateConnectedBot(
         'non_contacts' => true,
     ],
 );
-unset($bot, $user);
+unset($bot, $user, $unauthed);
 
+// Give time for error reporting routine to finish
 EventLoop::run();
