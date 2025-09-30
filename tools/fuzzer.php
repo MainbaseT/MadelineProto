@@ -281,7 +281,7 @@ foreach ($names as $name) {
 
 $wait(true);
 
-unset($bot, $user, $unauthed);
+unset($bot, $user, $unauthed, $wait, $toggleBusiness);
 
 // Give time for error reporting routine to finish
 EventLoop::run();
