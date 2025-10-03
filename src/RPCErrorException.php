@@ -787,6 +787,7 @@ class RPCErrorException extends \Exception
             'TTL_MEDIA_INVALID' => new self($rpc, 'Invalid media Time To Live was provided.', $code, $caller, $previous),
             'TTL_PERIOD_INVALID' => new self($rpc, 'The specified TTL period is invalid.', $code, $caller, $previous),
             'TYPES_EMPTY' => new self($rpc, 'No top peer type was provided.', $code, $caller, $previous),
+            'UNSUPPORTED' => new self($rpc, '`require_payment` cannot be *set* by users, only by monoforums: users must instead use the [inputPrivacyKeyNoPaidMessages](https://core.telegram.org/constructor/inputPrivacyKeyNoPaidMessages) privacy setting to remove a previously added exemption.', $code, $caller, $previous),
             'UNTIL_DATE_INVALID' => new self($rpc, 'Invalid until date provided.', $code, $caller, $previous),
             'URL_INVALID' => new self($rpc, 'Invalid URL provided.', $code, $caller, $previous),
             'USAGE_LIMIT_INVALID' => new self($rpc, 'The specified usage limit is invalid.', $code, $caller, $previous),
