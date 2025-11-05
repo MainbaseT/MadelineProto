@@ -295,9 +295,13 @@ abstract class EventHandler extends AbstractAPI
                 } else {
                     $filter = $filter->newInstance();
                 }
+                $reflParams = $methodRefl->getParameters();
+                if (count($reflParams) === 0) {
+                    throw new AssertionError("Handler method $method must have at least one parameter!");
+                }
                 $filter = new FiltersAnd(
                     $filter,
-                    Filter::fromReflectionType($methodRefl->getParameters()[0]->getType())
+                    Filter::fromReflectionType($reflParams[0]->getType())
                 );
                 $filter = $filter->initialize($this);
                 if (!$this instanceof SimpleEventHandler) {
