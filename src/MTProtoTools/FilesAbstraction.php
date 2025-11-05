@@ -1426,9 +1426,8 @@ trait FilesAbstraction
      * Sends a media.
      *
      * @param class-string<Media> $type
-     * @param bool $uploadOnly Whether to only uploade the file
      *
-     * @return ($uploadOnly ? Media : Message)
+     * @return $uploadOnly ? Media : Message
      * @internal
      */
     public function sendMedia(
