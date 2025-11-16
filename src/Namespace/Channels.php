@@ -422,13 +422,14 @@ interface Channels
      * Obtains a list of peers that can be used to send messages in a specific group.
      *
      * @param bool $for_paid_reactions If set, fetches the list of peers that can be used to send [paid reactions](https://core.telegram.org/api/reactions#paid-reactions) to messages of a specific peer.
+     * @param bool $for_live_stories
      * @param array|int|string $peer The group where we intend to send messages @see https://docs.madelineproto.xyz/API_docs/types/InputPeer.html
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
      * @return array{_: 'channels.sendAsPeers', peers: list<array{_: 'sendAsPeer', peer: array|int|string, premium_required: bool}>, chats: list<array|int|string>, users: list<array|int|string>} @see https://docs.madelineproto.xyz/API_docs/types/channels.SendAsPeers.html
      */
-    public function getSendAs(bool|null $for_paid_reactions = null, array|int|string|null $peer = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+    public function getSendAs(bool|null $for_paid_reactions = null, bool|null $for_live_stories = null, array|int|string|null $peer = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 
     /**
      * Delete all messages sent by a specific participant of a given supergroup.

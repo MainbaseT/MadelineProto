@@ -139,12 +139,13 @@ interface Phone
      * @param bool $reset_invite_hash Invalidate existing invite links
      * @param bool $join_muted Whether all users will that join this group call are muted by default upon joining the group call
      * @param bool $messages_enabled
+     * @param int $send_paid_messages_stars
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
      * @return array @see https://docs.madelineproto.xyz/API_docs/types/Updates.html
      */
-    public function toggleGroupCallSettings(array $call, bool|null $reset_invite_hash = null, bool|null $join_muted = null, bool|null $messages_enabled = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+    public function toggleGroupCallSettings(array $call, bool|null $reset_invite_hash = null, bool|null $join_muted = null, bool|null $messages_enabled = null, int|null $send_paid_messages_stars = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 
     /**
      * Get info about a group call.
@@ -154,7 +155,7 @@ interface Phone
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
-     * @return array{_: 'phone.groupCall', call: array{_: 'groupCallDiscarded', id: int, access_hash: int, duration: int}|array{_: 'groupCall', join_muted: bool, can_change_join_muted: bool, join_date_asc: bool, schedule_start_subscribed: bool, can_start_video: bool, record_video_active: bool, rtmp_stream: bool, listeners_hidden: bool, conference: bool, creator: bool, messages_enabled: bool, can_change_messages_enabled: bool, min: bool, id: int, access_hash: int, participants_count: int, title?: string, stream_dc_id?: int, record_start_date?: int, schedule_date?: int, unmuted_video_count?: int, unmuted_video_limit: int, version: int, invite_link?: string}, participants: list<array{_: 'groupCallParticipant', peer: array|int|string, muted: bool, left: bool, can_self_unmute: bool, just_joined: bool, versioned: bool, min: bool, muted_by_you: bool, volume_by_admin: bool, self: bool, video_joined: bool, date: int, active_date?: int, source: int, volume?: int, about?: string, raise_hand_rating?: int, video?: array{_: 'groupCallParticipantVideo', paused: bool, endpoint: string, source_groups: list<array{_: 'groupCallParticipantVideoSourceGroup', semantics: string, sources: list<int>}>, audio_source?: int}, presentation?: array{_: 'groupCallParticipantVideo', paused: bool, endpoint: string, source_groups: list<array{_: 'groupCallParticipantVideoSourceGroup', semantics: string, sources: list<int>}>, audio_source?: int}}>, participants_next_offset: string, chats: list<array|int|string>, users: list<array|int|string>} @see https://docs.madelineproto.xyz/API_docs/types/phone.GroupCall.html
+     * @return array{_: 'phone.groupCall', call: array{_: 'groupCallDiscarded', id: int, access_hash: int, duration: int}|array{_: 'groupCall', join_muted: bool, can_change_join_muted: bool, join_date_asc: bool, schedule_start_subscribed: bool, can_start_video: bool, record_video_active: bool, rtmp_stream: bool, listeners_hidden: bool, conference: bool, creator: bool, messages_enabled: bool, can_change_messages_enabled: bool, min: bool, id: int, access_hash: int, participants_count: int, title?: string, stream_dc_id?: int, record_start_date?: int, schedule_date?: int, unmuted_video_count?: int, unmuted_video_limit: int, version: int, invite_link?: string, send_paid_messages_stars?: int, default_send_as?: array|int|string}, participants: list<array{_: 'groupCallParticipant', peer: array|int|string, muted: bool, left: bool, can_self_unmute: bool, just_joined: bool, versioned: bool, min: bool, muted_by_you: bool, volume_by_admin: bool, self: bool, video_joined: bool, date: int, active_date?: int, source: int, volume?: int, about?: string, raise_hand_rating?: int, video?: array{_: 'groupCallParticipantVideo', paused: bool, endpoint: string, source_groups: list<array{_: 'groupCallParticipantVideoSourceGroup', semantics: string, sources: list<int>}>, audio_source?: int}, presentation?: array{_: 'groupCallParticipantVideo', paused: bool, endpoint: string, source_groups: list<array{_: 'groupCallParticipantVideoSourceGroup', semantics: string, sources: list<int>}>, audio_source?: int}, paid_stars_total?: int}>, participants_next_offset: string, chats: list<array|int|string>, users: list<array|int|string>} @see https://docs.madelineproto.xyz/API_docs/types/phone.GroupCall.html
      */
     public function getGroupCall(array $call, int|null $limit = 0, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 
@@ -169,7 +170,7 @@ interface Phone
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
-     * @return array{_: 'phone.groupParticipants', count: int, participants: list<array{_: 'groupCallParticipant', peer: array|int|string, muted: bool, left: bool, can_self_unmute: bool, just_joined: bool, versioned: bool, min: bool, muted_by_you: bool, volume_by_admin: bool, self: bool, video_joined: bool, date: int, active_date?: int, source: int, volume?: int, about?: string, raise_hand_rating?: int, video?: array{_: 'groupCallParticipantVideo', paused: bool, endpoint: string, source_groups: list<array{_: 'groupCallParticipantVideoSourceGroup', semantics: string, sources: list<int>}>, audio_source?: int}, presentation?: array{_: 'groupCallParticipantVideo', paused: bool, endpoint: string, source_groups: list<array{_: 'groupCallParticipantVideoSourceGroup', semantics: string, sources: list<int>}>, audio_source?: int}}>, next_offset: string, chats: list<array|int|string>, users: list<array|int|string>, version: int} @see https://docs.madelineproto.xyz/API_docs/types/phone.GroupParticipants.html
+     * @return array{_: 'phone.groupParticipants', count: int, participants: list<array{_: 'groupCallParticipant', peer: array|int|string, muted: bool, left: bool, can_self_unmute: bool, just_joined: bool, versioned: bool, min: bool, muted_by_you: bool, volume_by_admin: bool, self: bool, video_joined: bool, date: int, active_date?: int, source: int, volume?: int, about?: string, raise_hand_rating?: int, video?: array{_: 'groupCallParticipantVideo', paused: bool, endpoint: string, source_groups: list<array{_: 'groupCallParticipantVideoSourceGroup', semantics: string, sources: list<int>}>, audio_source?: int}, presentation?: array{_: 'groupCallParticipantVideo', paused: bool, endpoint: string, source_groups: list<array{_: 'groupCallParticipantVideoSourceGroup', semantics: string, sources: list<int>}>, audio_source?: int}, paid_stars_total?: int}>, next_offset: string, chats: list<array|int|string>, users: list<array|int|string>, version: int} @see https://docs.madelineproto.xyz/API_docs/types/phone.GroupParticipants.html
      */
     public function getGroupParticipants(array $call, array $ids = [], array $sources = [], string|null $offset = '', int|null $limit = 0, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 
@@ -334,13 +335,14 @@ interface Phone
      * Get RTMP URL and stream key for RTMP livestreams. Can be used even before creating the actual RTMP livestream with [phone.createGroupCall](https://docs.madelineproto.xyz/API_docs/methods/phone.createGroupCall.html) (the `rtmp_stream` flag must be set).
      *
      * @param bool $revoke Whether to revoke the previous stream key or simply return the existing one
+     * @param bool $live_story
      * @param array|int|string $peer Peer to livestream into @see https://docs.madelineproto.xyz/API_docs/types/InputPeer.html
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
      * @return array{_: 'phone.groupCallStreamRtmpUrl', url: string, key: string} @see https://docs.madelineproto.xyz/API_docs/types/phone.GroupCallStreamRtmpUrl.html
      */
-    public function getGroupCallStreamRtmpUrl(bool $revoke, array|int|string|null $peer = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+    public function getGroupCallStreamRtmpUrl(bool $revoke, bool|null $live_story = null, array|int|string|null $peer = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 
     /**
      * Save phone call debug information.
@@ -441,11 +443,14 @@ interface Phone
      *
      * @param array{_: 'inputGroupCall', id?: int, access_hash?: int}|array{_: 'inputGroupCallSlug', slug?: string}|array{_: 'inputGroupCallInviteMessage', msg_id?: int} $call @see https://docs.madelineproto.xyz/API_docs/types/InputGroupCall.html
      * @param array{_: 'textWithEntities', text?: string, entities?: list<array{_: 'messageEntityUnknown', offset?: int, length?: int}|array{_: 'messageEntityMention', offset?: int, length?: int}|array{_: 'messageEntityHashtag', offset?: int, length?: int}|array{_: 'messageEntityBotCommand', offset?: int, length?: int}|array{_: 'messageEntityUrl', offset?: int, length?: int}|array{_: 'messageEntityEmail', offset?: int, length?: int}|array{_: 'messageEntityBold', offset?: int, length?: int}|array{_: 'messageEntityItalic', offset?: int, length?: int}|array{_: 'messageEntityCode', offset?: int, length?: int}|array{_: 'messageEntityPre', offset?: int, length?: int, language?: string}|array{_: 'messageEntityTextUrl', offset?: int, length?: int, url?: string}|array{_: 'messageEntityMentionName', offset?: int, length?: int, user_id?: int}|array{_: 'inputMessageEntityMentionName', offset?: int, length?: int, user_id?: array|int|string}|array{_: 'messageEntityPhone', offset?: int, length?: int}|array{_: 'messageEntityCashtag', offset?: int, length?: int}|array{_: 'messageEntityUnderline', offset?: int, length?: int}|array{_: 'messageEntityStrike', offset?: int, length?: int}|array{_: 'messageEntityBankCard', offset?: int, length?: int}|array{_: 'messageEntitySpoiler', offset?: int, length?: int}|array{_: 'messageEntityCustomEmoji', offset?: int, length?: int, document_id?: int}|array{_: 'messageEntityBlockquote', collapsed?: bool, offset?: int, length?: int}|array{_: 'messageEntityBlockquote', offset?: int, length?: int}>} $message @see https://docs.madelineproto.xyz/API_docs/types/TextWithEntities.html
+     * @param int $allow_paid_stars
+     * @param array|int|string $send_as @see https://docs.madelineproto.xyz/API_docs/types/InputPeer.html
      * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
      * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
      * @param ?\Amp\Cancellation $cancellation Cancellation
+     * @return array @see https://docs.madelineproto.xyz/API_docs/types/Updates.html
      */
-    public function sendGroupCallMessage(array $call, array $message, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): bool;
+    public function sendGroupCallMessage(array $call, array $message, int|null $allow_paid_stars = null, array|int|string|null $send_as = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
 
     /**
      *
@@ -456,4 +461,52 @@ interface Phone
      * @param ?\Amp\Cancellation $cancellation Cancellation
      */
     public function sendGroupCallEncryptedMessage(array $call, string|null $encrypted_message = '', ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): bool;
+
+    /**
+     *
+     *
+     * @param array{_: 'inputGroupCall', id?: int, access_hash?: int}|array{_: 'inputGroupCallSlug', slug?: string}|array{_: 'inputGroupCallInviteMessage', msg_id?: int} $call @see https://docs.madelineproto.xyz/API_docs/types/InputGroupCall.html
+     * @param bool $report_spam
+     * @param list<int>|array<never, never> $messages
+     * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
+     * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
+     * @param ?\Amp\Cancellation $cancellation Cancellation
+     * @return array @see https://docs.madelineproto.xyz/API_docs/types/Updates.html
+     */
+    public function deleteGroupCallMessages(array $call, bool|null $report_spam = null, array $messages = [], ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+
+    /**
+     *
+     *
+     * @param array{_: 'inputGroupCall', id?: int, access_hash?: int}|array{_: 'inputGroupCallSlug', slug?: string}|array{_: 'inputGroupCallInviteMessage', msg_id?: int} $call @see https://docs.madelineproto.xyz/API_docs/types/InputGroupCall.html
+     * @param bool $report_spam
+     * @param array|int|string $participant @see https://docs.madelineproto.xyz/API_docs/types/InputPeer.html
+     * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
+     * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
+     * @param ?\Amp\Cancellation $cancellation Cancellation
+     * @return array @see https://docs.madelineproto.xyz/API_docs/types/Updates.html
+     */
+    public function deleteGroupCallParticipantMessages(array $call, bool|null $report_spam = null, array|int|string|null $participant = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+
+    /**
+     *
+     *
+     * @param array{_: 'inputGroupCall', id?: int, access_hash?: int}|array{_: 'inputGroupCallSlug', slug?: string}|array{_: 'inputGroupCallInviteMessage', msg_id?: int} $call @see https://docs.madelineproto.xyz/API_docs/types/InputGroupCall.html
+     * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
+     * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
+     * @param ?\Amp\Cancellation $cancellation Cancellation
+     * @return array{_: 'phone.groupCallStars', total_stars: int, top_donors: list<array{_: 'groupCallDonor', top: bool, my: bool, anonymous: bool, peer_id?: array|int|string, stars: int}>, chats: list<array|int|string>, users: list<array|int|string>} @see https://docs.madelineproto.xyz/API_docs/types/phone.GroupCallStars.html
+     */
+    public function getGroupCallStars(array $call, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): array;
+
+    /**
+     *
+     *
+     * @param array{_: 'inputGroupCall', id?: int, access_hash?: int}|array{_: 'inputGroupCallSlug', slug?: string}|array{_: 'inputGroupCallInviteMessage', msg_id?: int} $call @see https://docs.madelineproto.xyz/API_docs/types/InputGroupCall.html
+     * @param array|int|string $send_as @see https://docs.madelineproto.xyz/API_docs/types/InputPeer.html
+     * @param ?int $floodWaitLimit Can be used to specify a custom flood wait limit: if a FLOOD_WAIT_ rate limiting error is received with a waiting period bigger than this integer, an RPCErrorException will be thrown; otherwise, MadelineProto will simply wait for the specified amount of time. Defaults to the value specified in the settings: https://docs.madelineproto.xyz/PHP/danog/MadelineProto/Settings/RPC.html#setfloodtimeout-int-floodtimeout-self
+     * @param ?string $queueId If specified, ensures strict server-side execution order of concurrent calls with the same queue ID.
+     * @param ?\Amp\Cancellation $cancellation Cancellation
+     */
+    public function saveDefaultSendAs(array $call, array|int|string|null $send_as = null, ?int $floodWaitLimit = null, ?string $queueId = null, ?\Amp\Cancellation $cancellation = null): bool;
 }
