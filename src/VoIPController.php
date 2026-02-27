@@ -18,8 +18,6 @@
 
 namespace danog\MadelineProto;
 
-use Amp\ByteStream\BufferedReader;
-use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableStream;
 use Amp\ByteStream\WritableStream;
 use Amp\Cancellation;

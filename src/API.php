@@ -310,7 +310,7 @@ final class API extends AbstractAPI
                 $this->session,
                 $settings,
                 $forceFull
-            )->await(Tools::getTimeoutCancellation(30.0));
+            )->await(Tools::getTimeoutCancellation(30.0, "Timeout during session unserialization!"));
         } catch (CancelledException $e) {
             if (!$e->getPrevious() instanceof TimeoutException) {
                 throw $e;

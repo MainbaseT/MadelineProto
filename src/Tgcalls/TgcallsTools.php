@@ -23,7 +23,8 @@ use Amp\ByteStream\ReadableBuffer;
 use danog\MadelineProto\VoIP\SignalingProtocolVersion;
 
 /** @internal */
-final class TgcallsTools {
+final class TgcallsTools
+{
 
     public static function deserializeRtc(
         SignalingProtocolVersion $tgcallsVersion,

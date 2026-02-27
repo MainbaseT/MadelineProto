@@ -28,13 +28,13 @@ use Webrtc\DataChannel\RTCDataChannel;
 use Webrtc\DataChannel\RTCDataChannelParameters;
 use Webrtc\ICE\Enum\IceGatheringState;
 use Webrtc\ICE\RTCIceCandidate;
-use Webrtc\RTP\MediaStreamTrack\AudioStreamTrack;
 use Webrtc\Webrtc\RTCPeerConnection;
 
 use function React\Async\await;
 
 /** @internal */
-final class Controller {
+final class Controller
+{
 
     private const SIGNALING_MIN_SIZE = 21;
     private const SIGNALING_MAX_SIZE = 128 * 1024 * 1024;
@@ -49,7 +49,6 @@ final class Controller {
     public const EMPTY_ID = 254;
     public const CUSTOM_ID = 127;
 
-
     private RTCPeerConnection $peerConnection;
     private RTCDataChannel $dataChannel;
 
@@ -62,8 +61,7 @@ final class Controller {
         private readonly SignalingProtocolVersion $tgcallsVersion,
         private readonly MTProto $API,
         array $connections
-    )
-    {
+    ) {
         $iceServers = [];
         foreach ($connections as $connection) {
             if ($connection['_'] !== 'phoneConnectionWebrtc') {
@@ -99,13 +97,13 @@ final class Controller {
 
         $offer = await($this->peerConnection->createOffer());
         await($this->peerConnection->setLocalDescription($offer));
-        
+
         $this->sendSignalling([
             'type' => $offer->getType(),
             'sdp' => $offer->getSdp(),
         ]);
 
-        $this->peerConnection->on('icegatheringstatechange', function () {
+        $this->peerConnection->on('icegatheringstatechange', function (): void {
             if ($this->peerConnection->getIceGatheringState() !== IceGatheringState::complete) {
                 return;
             }
@@ -127,7 +125,6 @@ final class Controller {
             }
         });
     }
-
 
     public function sendSignalling(array $message): void
     {
@@ -164,7 +161,7 @@ final class Controller {
         }
         $message_key = substr($data, 0, 16);
         $data = substr($data, 16);
-        
+
         $x = Crypt::voipX($this->outgoing, true);
         [$aes_key, $aes_iv, $x] = Crypt::voipKdf($message_key, $this->authKey, $x);
         $packet = Crypt::ctrEncrypt($data, $aes_key, $aes_iv);
@@ -182,7 +179,9 @@ final class Controller {
             $seq = unpack('N', substr($packet, 0, 4))[1];
 
             $this->onSignalingMessage(TgcallsTools::deserializeRtc(
-                $this->tgcallsVersion, null, substr($packet, 4)
+                $this->tgcallsVersion,
+                null,
+                substr($packet, 4)
             ));
             return;
         }

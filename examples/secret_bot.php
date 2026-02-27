@@ -25,7 +25,6 @@ use danog\MadelineProto\LocalFile;
 use danog\MadelineProto\Logger;
 use danog\MadelineProto\Settings;
 use danog\MadelineProto\SimpleEventHandler;
-use danog\MadelineProto\VoIP;
 
 /*
  * Various ways to load MadelineProto
