@@ -218,6 +218,7 @@ foreach ($layer['methods']->by_id as $constructor) {
         || $name === 'account.updateUsername'
         || $name === 'photos.updateProfilePhoto'
         || $name === 'photos.uploadProfilePhoto'
+        || $name === 'payments.resolveStarGiftOffer' // tmp
         || !str_contains($name, '.')) {
         continue;
     }
