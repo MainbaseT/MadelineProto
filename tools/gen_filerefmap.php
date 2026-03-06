@@ -69,7 +69,7 @@ if (isset($argv[1])) {
     }
 
     FileRefGenerator::generate(
-        (int)$argv[1],
+        (int) $argv[1],
         $argv[2],
         $argv[3],
         $argv[4],

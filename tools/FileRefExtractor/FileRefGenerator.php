@@ -444,22 +444,30 @@ final class FileRefGenerator
 
         $locations['account.uploadTheme'][] = new Noop('A freshly uploaded theme file will obtain a context only once it is created via account.createTheme');
 
-        $recurse = static function (Closure $onStackEnd, string $type, array &$stack, array &$stackTypes) use ($TL, &$recurse): void {
-            if ($type === 'Update' || $type === 'Updates') {
-                $onStackEnd($stack);
-                return;
-            }
-            if ($type === 'PeerStories') {
-                $onStackEnd($stack);
+        $constructorList = $TL->tl->getConstructors()->by_id;
+        $mergedConstructorMethods = [
+            ...$constructorList,
+            ...$TL->tl->getMethods()->by_id,
+        ];
+        $recurse = static function (Closure $onStackEnd, string $type, array &$stack, array &$stackTypes, bool $incoming) use ($TL, &$recurse, $mergedConstructorMethods, $constructorList): void {
+            if ($incoming) {
+                if ($type === 'Update' || $type === 'Updates') {
+                    $onStackEnd($stack);
+                    return;
+                }
+                if ($type === 'PeerStories') {
+                    $onStackEnd($stack);
+                }
             }
 
             $pos = \count($stack);
-            foreach ([...$TL->tl->getConstructors()->by_id, ...$TL->tl->getMethods()->by_id] as $constructor) {
+            foreach ($incoming ? $constructorList : $mergedConstructorMethods as $constructor) {
                 $predicate = $constructor['predicate'] ?? $constructor['method'];
                 if ($predicate === 'updateShortMessage' || $predicate === 'updateShortChatMessage' || $predicate === 'updateShortSentMessage') {
                     // Assume these are converted to message constructors by the client.
                     continue;
                 }
+                $isMethod = isset($constructor['method']);
                 $t = $constructor['type'];
                 $stackTypes[$t] ??= 0;
                 if ($stackTypes[$t] > 1) {
@@ -482,20 +490,29 @@ final class FileRefGenerator
                             $oldFlag = $stack[$pos][2] ?? 0;
                             $stack[$pos][2] = $oldFlag | Path::FLAG_UNPACK_ARRAY;
                         }
-                        $recurse($onStackEnd, $t, $stack, $stackTypes);
+                        if ($isMethod) {
+                            if (!$incoming) {
+                                $onStackEnd($stack);
+                            }
+                        } else {
+                            $recurse($onStackEnd, $t, $stack, $stackTypes, $incoming);
+                        }
                         unset($stack[$pos]);
 
                     }
                 }
                 $stackTypes[$t]--;
             }
-            foreach ($TL->getMethodsOfType($type, true) as $method => $data) {
-                $stack[$pos] = [$method, ''];
-                $onStackEnd($stack);
-            }
-            foreach ($TL->getMethodsOfType("Vector<$type>", true) as $method => $data) {
-                $stack[$pos] = [$method, '', Path::FLAG_UNPACK_ARRAY];
-                $onStackEnd($stack);
+
+            if ($incoming) {
+                foreach ($TL->getMethodsOfType($type, true) as $method => $data) {
+                    $stack[$pos] = [$method, ''];
+                    $onStackEnd($stack);
+                }
+                foreach ($TL->getMethodsOfType("Vector<$type>", true) as $method => $data) {
+                    $stack[$pos] = [$method, '', Path::FLAG_UNPACK_ARRAY];
+                    $onStackEnd($stack);
+                }
             }
             unset($stack[$pos]);
         };
@@ -566,14 +583,46 @@ final class FileRefGenerator
             }
         }
 
-        $traversalPairs = [];
+        $outgoingTraversalPairsByCons = [];
+        foreach ($outgoingCons as $constructor => $contents) {
+            if ($contents === false) {
+                continue;
+            }
+            $type = $TL->tl->getConstructors()->findByPredicate($constructor)['type'];
+            $stack = [[$constructor, 'file_reference']];
+            $stackTypes = [$type => 1];
+
+            $outgoingTraversalPairs = [];
+            $recurse(
+                static function (array $stack) use (&$outgoingTraversalPairs): void {
+                    foreach ($stack as $pair) {
+                        $encoded = json_encode($pair);
+                        if (!isset($outgoingTraversalPairs[$encoded])) {
+                            $outgoingTraversalPairs[$encoded] = $pair;
+                        }
+                    }
+                },
+                $type,
+                $stack,
+                $stackTypes,
+                false,
+            );
+            ksort($outgoingTraversalPairs);
+            $outgoingTraversalPairs = array_values($outgoingTraversalPairs);
+            $outgoingTraversalPairsByCons[$constructor] = $outgoingTraversalPairs;
+        }
+        unset($outgoingTraversalPairs);
+
+        $incomingTraversalPairsByCons = [];
         $tmp = new Ast(blacklistedPredicates: $blacklistedPredicates, allowUnpacking: true, outputSchema: $pre);
         foreach ($incomingCons as $constructor => $_) {
             $type = ucfirst($constructor);
             $stack = [[$constructor, 'file_reference']];
             $stackTypes = [$type => 1];
+
+            $incomingTraversalPairs = [];
             $recurse(
-                static function (array $stack) use ($locations, $TL, $tmp, &$traversalPairs, &$validated, $storyMethods, $starMethods, $stickerMethods): void {
+                static function (array $stack) use ($locations, $TL, $tmp, &$incomingTraversalPairs, &$validated, $storyMethods, $starMethods, $stickerMethods): void {
                     $slice = [];
                     $hadAny = false;
                     $hadAnyNotNoop = false;
@@ -583,6 +632,11 @@ final class FileRefGenerator
                     $top = end($stack)[0];
                     for ($x = \count($stack)-1; $x >= 0; $x--) {
                         $pair = $stack[$x];
+                        $encoded = json_encode($pair);
+                        if (!isset($tmpPairs[$encoded])) {
+                            $tmpPairs[$encoded] = $pair;
+                        }
+
                         foreach ($locations[$pair[0]] ?? [] as $op) {
                             $normalized = $op->normalize($slice, $pair[0], false);
                             if ($normalized === null) {
@@ -591,7 +645,6 @@ final class FileRefGenerator
                             if (!$normalized instanceof Noop) {
                                 $hadAnyNotNoop = true;
                             }
-                            $tmpPairs[json_encode($pair)] = $pair;
                             $hadAny = true;
                             $normalized->build(new TLContext($TL, $tmp, $top, $TL->isConstructor($top)));
                             $validated[$pair[0]][spl_object_id($op)] = $op;
@@ -606,7 +659,7 @@ final class FileRefGenerator
                         $slice[] = $pair;
                     }
                     if ($hadAnyNotNoop) {
-                        $traversalPairs += $tmpPairs;
+                        $incomingTraversalPairs += $tmpPairs;
                     }
                     if (!$hadAny) {
                         throw new AssertionError("Uncovered path: " . json_encode($stack));
@@ -653,9 +706,14 @@ final class FileRefGenerator
                 $type,
                 $stack,
                 $stackTypes,
+                true,
             );
+
+            ksort($incomingTraversalPairs);
+            $incomingTraversalPairs = array_values($incomingTraversalPairs);
+            $incomingTraversalPairsByCons[$constructor] = $incomingTraversalPairs;
         }
-        //var_dump(array_values($traversalPairs));
+        unset($incomingTraversalPairs);
 
         $diff = [];
         foreach ($locations as $constructor => $ops) {
@@ -680,7 +738,15 @@ final class FileRefGenerator
             }
         }
 
-        $output->finalize($layer, array_filter($outgoingCons), $incomingCons, $outputFile, $outputFileJson);
+        $output->finalize(
+            $layer,
+            array_filter($outgoingCons),
+            $incomingCons,
+            $incomingTraversalPairsByCons,
+            $outgoingTraversalPairsByCons,
+            $outputFile,
+            $outputFileJson
+        );
 
         echo("OK $layer!\n".PHP_EOL);
     }

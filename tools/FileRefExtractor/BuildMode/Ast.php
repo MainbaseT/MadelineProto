@@ -58,8 +58,15 @@ final class Ast implements BuildMode
         return $id;
     }
 
-    public function finalize(int $layer, array $outgoingCons, array $incomingCons, string $refMapFile, string $refMapFileJson): void
-    {
+    public function finalize(
+        int $layer,
+        array $outgoingCons,
+        array $incomingCons,
+        array $incomingTraversalPairs,
+        array $outgoingTraversalPairs,
+        string $refMapFile,
+        string $refMapFileJson
+    ): void {
         $locations = [];
 
         $fileIdCons = [];
