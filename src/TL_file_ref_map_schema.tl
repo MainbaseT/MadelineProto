@@ -5,20 +5,28 @@ true#3fedd339 = True;
 vector#1cb5c415 {t:Type} # [ t ] = Vector t;
 
 // Root
-fileReferenceMap#28834873 layer:int db_schema:string db_schema_json:string locations:Vector<Location> sources:Vector<Source> skipped:Vector<SkippedSource> actions:Vector<Action> = FileReferenceMap;
+fileReferenceMap#a71aa6f0 layer:int db_schema:string db_schema_json:string locations:Vector<Location> traversers_incoming:Vector<TraverserIncoming> traversers_outgoing:Vector<TraverserOutgoing> actions:Vector<Action> skipped_sources:Vector<SkippedSource> = FileReferenceMap;
 
-traverseParam#91109f74 flags:# name:string is_flag:flags.0?true is_vector:flags.1?true = TraverseParam;
+// Locations
+locationIncoming#e8a166a4 type:string constructor:string stored_constructor:string = Location;
+locationOutgoing#ccb239d6 type:string constructor:string stored_constructor:string = Location;
 
-traverseConstructor#db7c6cf5 predicate:string params:Vector<TraverseParam> = TraversePart;
-traverseMethod#93ba84c9 predicate:string params:Vector<TraverseParam> = TraversePart;
+// Traversers (incoming)
+traverseParam#133c1e85 flags:# type:string name:string is_flag:flags.0?true is_vector:flags.1?true = TraverseParam;
 
-locationIncoming#9e6d55cb predicate:string stored_constructor:string traverse:Vector<TraversePart> = Location;
-locationOutgoing#53d26b0e predicate:string stored_constructor:string traverse:Vector<TraversePart> = Location;
+traverseIncomingConstructor#ffd2e3b7 type:string constructor:string params:Vector<TraverseParam> push_sources:Vector<Source> is_needed_parent:Bool = TraverserIncoming;
+traverseMethodResult#fda9f236 name:string push_sources:Vector<Source> is_needed_parent:Bool = TraverserIncoming;
 
-source#dd27c696 flags:# predicate:string is_constructor:flags.0?true stored_constructor:string stored_params:Vector<FieldExtractor> skipped_flags:Vector<string> needs_parent:flags.3?string parent_is_constructor:flags.4?true = Source;
+source#0c779a18 flags:# constructor:string is_constructor:flags.0?true stored_constructor:string stored_params:Vector<FieldExtractor> skipped_flags:Vector<string> needs_parent:flags.3?string parent_is_constructor:flags.4?true = Source;
 
-skippedSource#1d53cd15 flags:# predicate:string is_constructor:flags.0?true why:string = SkippedSource;
+// Traversers (outgoing)
+traverseOutgoingConstructor#d8743ec6 type:string constructor:string params:Vector<TraverseParam> = TraverserOutgoing;
+traverseMethodCall#9244f5bb name:string params:Vector<TraverseParam> = TraverserOutgoing;
 
+// Skipped sources
+skippedSource#47a7a386 flags:# constructor:string is_constructor:flags.0?true why:string = SkippedSource;
+
+// Refresh actions
 action#9539f410 stored_constructor:string action:ActionOp = Action;
 
 // Field extraction path
@@ -27,7 +35,7 @@ paramIsFlagAbortIfEmpty#f8fe9fee = ParamFlag;
 paramIsFlagFallback#202b77a1 fallback:TypedOp = ParamFlag;
 paramIsFlagPassthrough#1dc6e17d = ParamFlag;
 
-pathPart#8dc6ff46 constructor:string param:string flag:ParamFlag = PathPart;
+pathPart#5a9e1dc4 type:string constructor:string param:string flag:ParamFlag = PathPart;
 
 path#0c3586a2 parts:Vector<PathPart> = Path;
 pathParent#58f13684 parts:Vector<PathPart> = Path;
