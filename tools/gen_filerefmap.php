@@ -86,6 +86,10 @@ ksort($res);
 
 $start = min(214, array_key_first($res));
 $end = max(array_key_last($res), $last);
+/*
+$res = [];
+$start = 214;
+*/
 
 for ($layer = $start; $layer <= $end; $layer++) {
     if (!isset($res[$layer])) {
