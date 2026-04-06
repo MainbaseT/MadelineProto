@@ -303,5 +303,20 @@ $wait(true);
 
 unset($bot, $user, $unauthed, $wait, $toggleBusiness);
 
+if ($auth) {
+    $layerNumber = $schema->getLayer();
+    $res = json_decode(
+        (
+            $client
+                ->request(new Request('https://report-rpc-error.madelineproto.xyz/?auth='.$auth.'&setLayer='.$layerNumber))
+        )->getBody()->buffer(),
+        true,
+    );
+    Assert::true($res['ok']);
+    echo "Set layer number to $layerNumber".PHP_EOL;
+} else {
+    echo "No TELERPC_AUTH_TOKEN set, not setting layer number".PHP_EOL;
+}
+
 // Give time for error reporting routine to finish
 EventLoop::run();
