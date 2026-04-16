@@ -330,6 +330,14 @@ final class FileRefGenerator
             'fileSourceAvailableReactions'
         );
 
+        $locations['updateMessagePoll'][] = new GetMessageOp(
+            new GetInputPeerOp(new Path([['updateMessagePoll', 'peer', Path::FLAG_IF_ABSENT_ABORT]])),
+            new CopyOp([['updateMessagePoll', 'msg_id', Path::FLAG_IF_ABSENT_ABORT]]),
+            null,
+            null,
+            'fileSourceMessage',
+        );
+
         $locations['photo'][] = new CallOp(
             'photos.getUserPhotos',
             [
@@ -448,7 +456,7 @@ final class FileRefGenerator
         $outgoingList = $TL->tl->getMethods()->by_id;
         foreach ($TL->tl->getConstructors()->by_id as $k => $constructor) {
             if (str_starts_with($constructor['predicate'], 'input')
-                && ctype_upper(substr($constructor['predicate'], strlen('input'), 1))
+                && ctype_upper(substr($constructor['predicate'], \strlen('input'), 1))
             ) {
                 $outgoingList[$k] = $constructor;
             } else {
@@ -692,6 +700,9 @@ final class FileRefGenerator
                             || $top === 'messages.getRecentStickers'
                             || $top === 'updateNewStickerSet'
                             // The above are covered by the GetInputStickerSet document context
+
+                            || $top === 'updateMessagePoll'
+                            // Tmp
                         ) {
                             return;
                         }
