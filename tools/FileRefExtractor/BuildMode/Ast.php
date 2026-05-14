@@ -291,6 +291,22 @@ final class Ast implements BuildMode
                 ];
             }
 
+            $needsNotParents = [];
+            if ($action['_'] === 'getMessageOp') {
+                $needsNotParents = [
+                    [
+                        '_' => 'predicate',
+                        'predicate' => 'messages.getScheduledMessages',
+                        'is_constructor' => false,
+                    ],
+                    [
+                        '_' => 'predicate',
+                        'predicate' => 'updateNewScheduledMessage',
+                        'is_constructor' => true,
+                    ],
+                ];
+            }
+
             $out = [
                 '_' => 'source',
                 'predicate' => [
@@ -301,7 +317,7 @@ final class Ast implements BuildMode
                 'stored_constructor' => $constructor,
                 'stored_params' => array_column($this->stored, 'extractor'),
                 'skipped_flags' => $skipped,
-                'needs_not_parents' => [],
+                'needs_not_parents' => $needsNotParents,
             ];
             if ($this->needsParent !== null) {
                 $out['needs_parent'] = [
