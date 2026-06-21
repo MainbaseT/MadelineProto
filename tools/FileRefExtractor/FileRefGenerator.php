@@ -333,6 +333,7 @@ final class FileRefGenerator
             $locations[$c][] = new CallOp('account.getSavedRingtones', ['hash' => new PrimitiveLiteralOp('long', 0)], 'fileSourceSavedRingtones');
         }
 
+        $locations['draftMessage'][] = new Noop('Do not store references from drafts');
         $locations['recentMeUrlChatInvite'][] = new Noop('Do not store references based on chat invite links');
         $locations['messages.checkChatInvite'][] = new Noop('Do not store references based on chat invite links');
 
@@ -720,7 +721,7 @@ final class FileRefGenerator
                             // The above are covered by the GetInputStickerSet document context
 
                             || $top === 'updateMessagePoll'
-                            // Tmp
+                            // It's okay
                         ) {
                             return;
                         }
